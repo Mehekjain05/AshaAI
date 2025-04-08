@@ -1,4 +1,5 @@
 import React from 'react';
+import '../App.css'
 
 const FeatureSection: React.FC = () => {
   const features = [
@@ -25,13 +26,24 @@ const FeatureSection: React.FC = () => {
       <h2 className="text-2xl font-bold mb-8">How Asha Can Help You</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {features.map((feature, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-            <p className="text-gray-600">{feature.description}</p>
+          <div key={index} className="card">
+            <div className="content">
+              <div className="front">
+                <div className="front-content">
+                  <p className="text-black">{feature.description}</p>
+                </div>
+              </div>
+              <div className="back">
+                <div className="back-content">
+                  <strong>{feature.title}</strong>
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>
     </div>
+
   );
 };
 
