@@ -16,7 +16,7 @@ const JobCard: React.FC<JobProps> = ({
   title, company, location, experience, workType, tags, salary, postedTime, jobType 
 }) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-white p-6 rounded-lg shadow-xl">
       <div className="flex items-start mb-4">
         <div className="bg-gray-200 p-4 rounded-md">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,7 +94,7 @@ const JobsSection: React.FC = () => {
             </svg>
           </a>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
           {jobs.map((job, index) => (
             <JobCard key={index} {...job} />
           ))}

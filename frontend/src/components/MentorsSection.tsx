@@ -1,4 +1,5 @@
 import React from 'react';
+import '../index.css'
 
 interface MentorProps {
   name: string;
@@ -9,23 +10,24 @@ interface MentorProps {
 
 const MentorCard: React.FC<MentorProps> = ({ name, role, company, tags }) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col items-center">
-      <div className="w-20 h-20 bg-gray-200 rounded-full mb-4 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+    <div className="card-style">
+      <div className="circle">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400 z-10" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
         </svg>
       </div>
-      <h3 className="text-lg font-semibold text-center">{name}</h3>
-      <p className="text-sm text-gray-600 text-center mb-3">{role} at {company}</p>
-      <div className="flex flex-wrap justify-center gap-2 mb-4">
+      <h3 className="text-lg font-semibold text-center mt-6 z-10">{name}</h3>
+      <p className="text-sm text-gray-600 text-center mb-3 z-10">{role} at {company}</p>
+      <div className="flex flex-wrap justify-center gap-2 mb-4 z-10">
         {tags.map((tag, index) => (
           <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">{tag}</span>
         ))}
       </div>
-      <button className="w-full bg-purple-700 text-white py-2 rounded-md">Connect</button>
+      <button className="w-full bg-purple-700 text-white py-2 rounded-md z-10">Connect</button>
     </div>
   );
 };
+
 
 const MentorsSection: React.FC = () => {
   const mentors = [

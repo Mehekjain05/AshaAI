@@ -1,1 +1,76 @@
 @import "tailwindcss";
+
+.card-style {
+    --bg-color: #ceb2fc;
+    --bg-color-light: #f0e7ff;
+    --text-color-hover: black;
+    --box-shadow-color: rgba(206, 178, 252, 0.48);
+    width: 320px;
+    height: 321px;
+    background: #fff;
+    border-top-right-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease-out;
+    text-decoration: none;
+    padding: 15px;
+  }
+  
+  .card-style:hover {
+    transform: translateY(-5px) scale(1.005) translateZ(0);
+    box-shadow: 0 24px 36px rgba(0, 0, 0, 0.11), 0 24px 46px var(--box-shadow-color);
+  }
+  
+  .card-style:hover .circle {
+    background: var(--bg-color);
+    border-color: var(--bg-color-light);
+  }
+  
+  .card-style:hover .circle::before {
+    transform: scale(4);
+    opacity: 0.3;
+  }
+  
+  .card-style:hover h3,
+  .card-style:hover p {
+    color: var(--text-color-hover);
+  }
+  
+  .circle {
+    width: 131px;
+    height: 131px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s ease-out;
+    z-index: 1;
+    overflow: hidden;
+  }
+  
+  .circle::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-color);
+    border-radius: 50%;
+    z-index: 0;
+    transform: scale(1);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+  }
+  
+  .circle svg {
+    z-index: 1;
+    transform: translateZ(0);
+  }
+  
