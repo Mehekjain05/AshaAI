@@ -35,7 +35,7 @@ const ChatbotWidget: React.FC = () => {
       {/* Chat button */}
       <button 
         onClick={toggleChat}
-        className="fixed bottom-6 right-6 bg-purple-700 text-white p-4 rounded-full shadow-lg z-50 hover:bg-purple-800 transition-all"
+        className="fixed bottom-6 right-6 bg-[#90c45c] text-white p-4 rounded-full shadow-lg z-50 hover:bg-purple-800 transition-all"
       >
         {isOpen ? (
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +52,7 @@ const ChatbotWidget: React.FC = () => {
       {isOpen && (
         <div className="fixed bottom-20 right-6 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 flex flex-col" style={{ height: '500px' }}>
           {/* Chat header */}
-          <div className="bg-purple-700 text-white p-4 rounded-t-lg flex justify-between items-center">
+          <div className="bg-[#90c45c] text-white p-4 rounded-t-lg flex justify-between items-center">
             <div className="flex items-center">
               <span className="font-medium">Chat with Asha</span>
             </div>
@@ -92,7 +92,7 @@ const ChatbotWidget: React.FC = () => {
             />
             <button 
               type="submit"
-              className="bg-purple-700 text-white px-4 py-2 rounded-r-lg hover:bg-purple-800"
+              className="bg-[#90c45c] text-white px-4 py-2 rounded-r-lg hover:bg-purple-800"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />

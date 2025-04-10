@@ -49,7 +49,7 @@
     content: ' ';
     width: 160px;
     height: 160%;
-    background: linear-gradient(90deg, transparent, #8F87F1, #C68EFD, #E9A5F1, #FED2E2, transparent);
+    background: linear-gradient(90deg, transparent, #90C67C, #67AE6E, #169976, black, transparent);
     animation: rotation_481 5000ms infinite linear;
   }
   

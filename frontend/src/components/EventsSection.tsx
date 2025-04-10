@@ -17,12 +17,12 @@ const EventCard: React.FC<EventProps> = ({ title, description, date, type, locat
     'Meetup': 'bg-rose-100 text-rose-800',
   };
 
-  const typeColorClass = eventTypeColors[type] || 'bg-purple-100 text-purple-800';
+  const typeColorClass = eventTypeColors[type] || 'bg-[#90c45c] text-purple-800';
 
   return (
     <div className="group transition-all duration-300 hover:translate-y-1">
       <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg">
-        <div className="bg-gradient-to-br from-[#8F87F1] to-[#C68EFD] p-8 flex justify-center items-center relative overflow-hidden h-48">
+        <div className="bg-gradient-to-br from-[#67AE6E] to-[#67AE6E] p-8 flex justify-center items-center relative overflow-hidden h-48">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -57,12 +57,12 @@ const EventCard: React.FC<EventProps> = ({ title, description, date, type, locat
           <p className="text-gray-600 text-sm mb-4 line-clamp-2">{description}</p>
           <div className="flex justify-between items-center">
             <div className="flex items-center text-sm text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-[#90c45c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               {date}
             </div>
-            <button className="text-white bg-purple-600 hover:bg-purple-700 transition-colors duration-300 text-sm font-medium px-4 py-2 rounded-lg">Register</button>
+            <button className="text-white bg-[#90c45c] hover:bg-[#90c45c] transition-colors duration-300 text-sm font-medium px-4 py-2 rounded-lg">Register</button>
           </div>
         </div>
       </div>
@@ -110,10 +110,10 @@ const EventsSection: React.FC = () => {
     <div className="my-12 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Upcoming Events</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-[#90c45c] to-indigo-600 bg-clip-text text-transparent">Upcoming Events</h2>
           <p className="text-gray-600 mt-2">Join our community events and enhance your skills</p>
         </div>
-        <a href="#" className="mt-4 md:mt-0 text-purple-700 font-medium flex items-center group hover:text-purple-800 transition-colors duration-300">
+        <a href="#" className="mt-4 md:mt-0 text-[#90c45c] font-medium flex items-center group hover:text-purple-800 transition-colors duration-300">
           View all events
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />

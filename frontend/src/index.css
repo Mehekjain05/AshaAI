@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 .card-style {
-    --bg-color: #ceb2fc;
+    --bg-color: #E1EEBC;
     --bg-color-light: #f0e7ff;
     --text-color-hover: black;
     --box-shadow-color: rgba(206, 178, 252, 0.48);

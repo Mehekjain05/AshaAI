@@ -4,15 +4,15 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-white shadow-sm py-4">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="text-2xl font-bold text-purple-700"><a href="/">JobsForHer</a></div>
+        <div className="text-2xl font-bold text-[#90c45c]"><a href="/">JobsForHer</a></div>
         <div className="hidden md:flex space-x-6">
-          <a href="/jobs" className="text-gray-700 hover:text-purple-700">Jobs</a>
-          <a href="/mentors" className="text-gray-700 hover:text-purple-700">Mentorship</a>
-          <a href="/events" className="text-gray-700 hover:text-purple-700">Events</a>
-          <a href="#" className="text-gray-700 hover:text-purple-700">Learning</a>
-          <a href="#" className="text-gray-700 hover:text-purple-700">Community</a>
+          <a href="/jobs" className="text-gray-700 hover:text-[#90c45c]">Jobs</a>
+          <a href="/mentors" className="text-gray-700 hover:text-[#90c45c]">Mentorship</a>
+          <a href="/events" className="text-gray-700 hover:text-[#90c45c]">Events</a>
+          <a href="/learning" className="text-gray-700 hover:text-[#90c45c]">Learning</a>
+          <a href="/community" className="text-gray-700 hover:text-[#90c45c]">Community</a>
         </div>
-        <button className="bg-purple-700 text-white px-4 py-2 rounded-md">Sign In</button>
+        <button className="bg-[#90c45c] text-white px-4 py-2 rounded-md">Sign In</button>
       </div>
     </nav>
   );

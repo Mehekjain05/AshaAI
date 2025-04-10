@@ -26,7 +26,7 @@ const JobCard: React.FC<JobProps> = ({
         <div className="ml-4 flex-grow">
           <div className="flex justify-between">
             <h3 className="text-lg font-semibold">{title}</h3>
-            <span className="text-purple-700 text-sm font-medium">{jobType}</span>
+            <span className="text-[#90c45c] text-sm font-medium">{jobType}</span>
           </div>
           <p className="text-gray-600">{company} - {location}</p>
         </div>
@@ -87,7 +87,7 @@ const JobsSection: React.FC = () => {
       <div className="my-12">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold">Featured Opportunities</h2>
-          <a href="#" className="text-purple-700 flex items-center">
+          <a href="#" className="text-[#90c45c] flex items-center">
             View all jobs 
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />

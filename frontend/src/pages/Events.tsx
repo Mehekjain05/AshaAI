@@ -115,7 +115,7 @@ const Events: React.FC = () => {
 
         {/* Featured Event Section */}
         <div className="mb-12">
-          <div className="bg-gradient-to-r from-purple-700 to-purple-500 rounded-lg overflow-hidden shadow-lg">
+          <div className="bg-gradient-to-l from-[#67AE6E] to-black rounded-lg overflow-hidden shadow-lg">
             <div className="p-8 md:p-10 flex flex-col md:flex-row items-start">
               <div className="md:w-2/3 text-white mb-6 md:mb-0 md:pr-8">
                 <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm mb-4">
@@ -140,12 +140,12 @@ const Events: React.FC = () => {
                   </div>
                 </div>
                 
-                <button className="bg-white text-purple-700 px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors">
+                <button className="bg-white text-[#90c45c] px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors">
                   {featuredEvent.actionText}
                 </button>
               </div>
               
-              <div className="md:w-1/3 bg-purple-600/10 p-6 rounded-lg backdrop-blur text-center">
+              <div className="md:w-1/3 bg-[#90c45c]/10 p-6 rounded-lg backdrop-blur text-center">
                 <div className="text-white text-6xl font-bold mb-1">{featuredEvent.daysLeft}</div>
                 <div className="text-white text-xl mb-6">Days Left</div>
                 
@@ -176,14 +176,14 @@ const Events: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search events..."
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#90c45c]"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <div className="md:w-1/4">
                 <select
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#90c45c]"
                   value={eventType}
                   onChange={(e) => setEventType(e.target.value)}
                 >
@@ -195,7 +195,7 @@ const Events: React.FC = () => {
               </div>
               <div className="md:w-1/4">
                 <select
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#90c45c]"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                 >
@@ -209,7 +209,7 @@ const Events: React.FC = () => {
               <div>
                 <button
                   type="submit"
-                  className="w-full md:w-auto bg-purple-700 text-white px-6 py-2 rounded-md font-medium hover:bg-purple-800 transition-colors"
+                  className="w-full md:w-auto bg-[#90c45c] text-white px-6 py-2 rounded-md font-medium hover:bg-[#90c45c] transition-colors"
                 >
                   Filter
                 </button>
@@ -231,7 +231,7 @@ const Events: React.FC = () => {
                 </div>
                 <div className="w-3/4 p-6">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-purple-700 text-sm font-medium">{event.type}</span>
+                    <span className="text-[#90c45c] text-sm font-medium">{event.type}</span>
                     <span className="text-gray-500 text-sm">{event.location}</span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">{event.title}</h3>
@@ -243,7 +243,7 @@ const Events: React.FC = () => {
                       </svg>
                       <span>{event.date}</span>
                     </div>
-                    <button className="text-purple-700 font-medium hover:text-purple-800">
+                    <button className="text-[#90c45c] font-medium hover:text-[#90c45c]">
                       {event.actionText}
                     </button>
                   </div>
@@ -268,7 +268,7 @@ const Events: React.FC = () => {
                   </svg>
                   <span>{event.date}</span>
                 </div>
-                <button className="text-purple-700 font-medium flex items-center hover:text-purple-800">
+                <button className="text-[#90c45c] font-medium flex items-center hover:text-[#90c45c]">
                   {event.actionText}
                   {event.actionText === 'Watch Recording' && (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

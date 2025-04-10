@@ -49,7 +49,7 @@ const SuccessStoriesSection: React.FC = () => {
           <SuccessStory key={index} {...story} />
         ))}
         <div className="flex justify-center">
-          <button className="bg-purple-700 text-white px-6 py-3 rounded-md">Share Your Success Story</button>
+          <button className="bg-[#90c45c] text-white px-6 py-3 rounded-md">Share Your Success Story</button>
         </div>
       </div>
     </div>

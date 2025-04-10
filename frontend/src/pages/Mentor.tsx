@@ -131,7 +131,7 @@ const Mentor: React.FC = () => {
                 </ul>
                 
                 {program.hasApplyButton && (
-                  <button className="w-full bg-purple-700 text-white py-3 rounded-lg font-medium hover:bg-purple-800 transition-colors">
+                  <button className="w-full [#90c45c] text-white py-3 rounded-lg font-medium hover:bg-[#90c45c] transition-colors">
                     {program.buttonText || "Apply Now"}
                   </button>
                 )}
@@ -175,7 +175,7 @@ const Mentor: React.FC = () => {
                   ))}
                 </div>
                 
-                <button className="w-full bg-purple-700 text-white py-2 rounded-lg font-medium mt-auto hover:bg-purple-800 transition-colors">
+                <button className="w-full [#90c45c] text-white py-2 rounded-lg font-medium mt-auto hover:bg-[#90c45c] transition-colors">
                   Connect
                 </button>
               </div>
