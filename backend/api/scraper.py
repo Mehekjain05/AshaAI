@@ -13,7 +13,7 @@ import os
 class Scraper:
     
     @staticmethod    
-    def scrape_herkey_jobs_selenium_colab(url="https://www.herkey.com/jobs", wait_time=30):
+    def scrape_herkey_jobs(url="https://www.herkey.com/jobs", wait_time=30):
         """
         Scrapes job listings from the HerKey jobs page using Selenium in Colab.
 
@@ -69,10 +69,10 @@ class Scraper:
                 print(f"Timeout or error waiting for job cards: {e}")
                 print("Attempting to parse anyway, but might miss jobs or fail.")
                 try:
-                driver.save_screenshot("screenshot_wait_failed.png")
-                print("Saved screenshot_wait_failed.png")
+                    driver.save_screenshot("screenshot_wait_failed.png")
+                    print("Saved screenshot_wait_failed.png")
                 except Exception as ss_error:
-                print(f"Could not save screenshot: {ss_error}")
+                    print(f"Could not save screenshot: {ss_error}")
 
 
             print("Getting rendered page source...")

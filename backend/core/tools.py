@@ -1,5 +1,9 @@
 from langchain_core.tools import tool
 from typing import Optional
+from core.rag import Rag
+from api.scraper import Scraper
+
+retriever = Rag.create_vectordb_retriever()
 
 @tool
 def vectorstore_retriever_tool(query : str) -> str:
@@ -36,7 +40,7 @@ def publicapi_retriever_tool(work_mode: Optional[str] = None, job_type: Optional
   elif job_type:
     herkey_jobs_url += f"/search?job_type={job_type}"
 
-  extracted_jobs = scrape_herkey_jobs_selenium_colab(herkey_jobs_url, wait_time=30)
+  extracted_jobs = Scraper.scrape_herkey_jobs(herkey_jobs_url, wait_time=30)
   relevant_jobs = ""
   for i, job in enumerate(extracted_jobs):
     relevant_jobs += f"Job {i+1}:\n"
@@ -48,4 +52,4 @@ def publicapi_retriever_tool(work_mode: Optional[str] = None, job_type: Optional
     relevant_jobs += f"Skills: {job['skills']}\n\n"
   return relevant_jobs
 
-tools = [vectorstore_retriever_tool, publicapi_retriever_tool]
+# tools = [vectorstore_retriever_tool, publicapi_retriever_tool]
