@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Jobs from "./pages/Jobs";
 import Events from "./pages/Events";
@@ -6,12 +6,16 @@ import Mentor from "./pages/Mentor";
 import Navbar from "./components/Navbar";
 import Community from "./pages/Community";
 import Learning from "./pages/Learning";
+import Chat from "./pages/Chat";
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isChatRoute = location.pathname === "/chat";
+
   return (
-    <Router>
-      <Navbar /> {/* Always visible */}
-      <div> {/* Padding to prevent overlap due to fixed navbar */}
+    <div>
+      {!isChatRoute && <Navbar />}
+      <div>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/jobs" element={<Jobs />} />
@@ -19,11 +23,19 @@ function App() {
           <Route path="/mentors" element={<Mentor />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/chat" element={<Chat />} />
         </Routes>
       </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
 
 export default App;
-

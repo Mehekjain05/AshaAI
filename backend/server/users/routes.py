@@ -13,7 +13,7 @@ ASHA = AshaAI.create_agent()
 @users.route("/chat", methods = ["GET", "POST"])
 def agent_chat():
     data: dict = request.get_json()
-    user_message = data["query"]
+    user_message = data.get("query")
     if not user_message:
         return "No message provided", 400
 
