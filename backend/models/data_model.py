@@ -13,3 +13,11 @@ class JobResponse(BaseModel):
 class JobResponseList(BaseModel):
     """A list of job responses"""
     jobs: List[JobResponse]
+
+
+
+class BiasDetection(BaseModel):
+  """Detecting bias and relevance in a user query"""
+  bias_detected : bool = Field(description="Boolean value representing the presence of bias. True if bias is present, False if absent")
+  bias_score : int = Field(description="A score between 0 and 100 representing the level of bias")
+  response : str = Field(description="Response in first person to be given directly back to the user as the Asha AI chatbot in case bias is detected. Explaining why the user query felt biased, redirecting user to original mission of the chatbot and warning the user")

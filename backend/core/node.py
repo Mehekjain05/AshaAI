@@ -13,6 +13,10 @@ from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool
 from models.data_model import JobResponseList
+from core.guardrails import CustomDetectPII, CustomDetectBias
+from guardrails import Guard
+
+guard = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 
 tools = [vectorstore_retriever_tool, publicapi_retriever_tool]   
 class Node:
@@ -28,6 +32,8 @@ class Node:
             dict: The updated state with the agent response appended to messages
         """
         print("---CALL AGENT---")
+
+        
         model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
         model = model.bind_tools(tools)
         response = model.invoke(
