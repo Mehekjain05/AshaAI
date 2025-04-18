@@ -1,6 +1,6 @@
 import logging
 import warnings
-
+from models.data_model import BiasDetection
 logging.getLogger("presidio-analyzer").setLevel(logging.ERROR)
 
 warnings.filterwarnings("ignore")
@@ -37,8 +37,8 @@ class CustomDetectPII(Validator):
               "transformers": transformer_model_name
             }
         }]
-        self.nlp_engine = TransformersNlpEngine(models=model_config)
-        self.analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
+        self.nlp_engine = TransformersNlpEngine(models=self.model_config)
+        self.analyzer = AnalyzerEngine(nlp_engine=self.nlp_engine)
         self.anonymizer = AnonymizerEngine()
 
     def _validate(self, value: str, metadata: Dict) -> ValidationResult:
@@ -61,7 +61,7 @@ class CustomDetectBias(Validator):
     def __init__(self, bias_threshold: int=70, model='gemini-2.0-flash', on_fail: Optional[Callable] = None):
         super().__init__(on_fail=on_fail, bias_threshold=bias_threshold)
         self.llm = ChatGoogleGenerativeAI(model= model)
-        self.structured_llm = llm.with_structured_output(BiasDetection)
+        self.structured_llm = self.llm.with_structured_output(BiasDetection)
         self.bias_threshold = bias_threshold
         self.SYSTEM_PROMPT = """
             You are a bias detection expert tasked with performing tasked exclusively with identifying and analyzing gender bias within content relevant to the Asha AI Chatbot initiative. This chatbot is developed for the JobsForHer Foundation platform, which is dedicated to empowering women in their professional journeys. Your objective is to thoroughly examine any given text (e.g., user queries) to detect potential gender-based bias or insensitive language.
