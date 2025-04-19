@@ -22,3 +22,4 @@ langchain-google-genai
 presidio-analyzer[transformers]
 presidio-anonymizer
 spacy
+pinecone
