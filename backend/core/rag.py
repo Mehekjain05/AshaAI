@@ -6,45 +6,41 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import faiss
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.vectorstores import FAISS
+import os
+from pinecone import Pinecone
+from dotenv import load_dotenv
+from langchain_community.vectorstores import Pinecone as LangchainPinecone
+from langchain_pinecone import PineconeVectorStore
+
+load_dotenv()
 
 class Rag:
     @staticmethod
     def create_vectordb_retriever():
-        embd = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
-            #------------------pdf path----------------------
-        urls = [
-            "https://lilianweng.github.io/posts/2023-06-23-agent/",
-            "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
-            "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
-        ]
+        # Load environment variables
+        # Load credentials
+        pinecone_api_key = os.environ.get('PINECONE_API_KEY')
+        index_name = "jobs-index"
+        pinecone_env = os.environ.get("PINECONE_ENV")
 
-        docs = [WebBaseLoader(url).load() for url in urls]
-        # urls = [
-        #     "/content/free-legal-information-disclaimer.pdf",
-        #     "/content/rfp-2022-006_request_for_proposal_amendment_1.pdf",
-        # ]
-
-        # # Load
-        # docs = [PyPDFLoader(url).load() for url in urls]
-        docs_list = [item for sublist in docs for item in sublist]
-
-        # Split
-        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=500, chunk_overlap=100
-        )
-        doc_splits = text_splitter.split_documents(docs_list)
-
-        # index = faiss.IndexFlatL2(len(embd.embed_query("hello world")))
-        index = faiss.IndexFlatL2(768)
-
-        vector_store = FAISS(
-            embedding_function=embd,
-            index=index,
-            docstore=InMemoryDocstore(),
-            index_to_docstore_id={},
-        )
-
-        vector_store.add_documents(doc_splits)
-        retriever = vector_store.as_retriever()
         
-        return retriever
+        # Create Pinecone client 
+        pc = Pinecone(api_key=pinecone_api_key)
+        
+        index = pc.Index(index_name)
+
+        # Check if index exists (optional safety)
+        if index_name not in pc.list_indexes().names():
+            raise ValueError(f"Pinecone index '{index_name}' does not exist")
+        
+        # Setup embedding model (same as used while populating Pinecone)
+        embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+
+        docsearch = PineconeVectorStore(
+            index=index,
+            pinecone_api_key=os.environ.get('PINECONE_API_KEY'),
+            # index_name=index_name,
+            embedding=embedding
+        )
+
+        return docsearch.as_retriever()

@@ -25,6 +25,7 @@ def get_gemini_embedding(text: str) -> list:
 index_name = "jobs-index"
 
 if index_name in pc.list_indexes().names():
+    print("delete")
     pc.delete_index(index_name)
 
 if index_name not in pc.list_indexes().names():
@@ -60,4 +61,7 @@ for job in sample_jobs:
     text = f"{job['title']} at {job['company']}, {job['location']}, Mode: {job['work_mode']}, Experience: {job['experience']}, Skills: {job['skills']}"
     embedding = get_gemini_embedding(text)
     vector_id = str(uuid4())
-    index.upsert(vectors=[{"id": vector_id, "values": embedding, "metadata": job}])
+    print(text)
+    metadata = job.copy()
+    metadata["text"] = text
+    index.upsert(vectors=[{"id": vector_id, "values": embedding, "metadata": metadata}])

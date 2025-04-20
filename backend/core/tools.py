@@ -7,17 +7,21 @@ retriever = Rag.create_vectordb_retriever()
 
 @tool
 def vectorstore_retriever_tool(query : str) -> str:
-  """Search and return information about Lilian Weng blog posts on LLM agents, prompt engineering, and adversarial attacks on LLMs.
+  """Search and return jobs according to the given user query.
 
   Args:
       query: The query to use to search the vector database
 
   Returns:
       Relevant information from the vector database"""
-  docs = retriever.invoke(query)
+  docs = retriever.get_relevant_documents(query)
+  if not docs:
+    print("no docs")
+    return "No relevant jobs found."
   def format_docs(docs):
-        return "\n\n".join(doc.page_content for doc in docs)
+    return "\n\n".join(doc.page_content for doc in docs)
   relevant_info = format_docs(docs)
+  print("relevant info: ", relevant_info)
   return relevant_info
 
 @tool
