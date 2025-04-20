@@ -7,8 +7,11 @@ os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 from flask import Blueprint, request, jsonify, Response, stream_with_context
 import json
 from core.agent import AshaAI
+from core.guardrails import CustomDetectPII, CustomDetectBias
+from guardrails import Guard
 
 users = Blueprint(name='users', import_name=__name__)
+GUARD =  Guard().use_many(CustomDetectPII(on_fail="fix"),CustomDetectBias(on_fail="fix"))
 ASHA = AshaAI.create_agent()
 @users.route("/chat", methods = ["GET", "POST"])
 def agent_chat():
@@ -16,10 +19,13 @@ def agent_chat():
     user_message = data.get("query")
     if not user_message:
         return "No message provided", 400
-
+    results = GUARD.validate(user_message)
+    print(results)
+    if results.validation_summaries[0].validator_name == 'CustomDetectBias':
+        return jsonify({"response": results.to_dict()})  
     inputs = {
         "messages":[
-            {"role": "user", "content": user_message},
+            {"role": "user", "content": results},
         ]
     }
     config = {"configurable": {"user_id": "user-123", "thread_id": "1"}}

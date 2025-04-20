@@ -80,7 +80,7 @@ class CustomDetectBias(Validator):
         messages = [
             {
                 "role": "system",
-                "content": SYSTEM_PROMPT,
+                "content": self.SYSTEM_PROMPT,
             },
             {
                 "role": "user",

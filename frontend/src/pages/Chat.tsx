@@ -10,7 +10,7 @@ import NotionPicker from '../components/NotionPicker';
 import { Calendar } from 'lucide-react';
 import CalendarPopup from '../components/CalendarPopup';
 import EmailComposer from '../components/EmailComposer';
-import AccessDeniedCard from '../components/AccessDesniedCard';
+import AccessDeniedCard from '../components/AccessDeniedCard';
 import FilePreview from '../components/FilePreview';
 import PDFPreview from '../components/PDFPreview';
 import SummaryCard from '../components/SummaryCard';
