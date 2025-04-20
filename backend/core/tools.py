@@ -19,7 +19,17 @@ def vectorstore_retriever_tool(query : str) -> str:
     print("no docs")
     return "No relevant jobs found."
   def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
+    relevant_jobs = ""
+    for i, doc in enumerate(docs):
+        metadata = doc.metadata
+        relevant_jobs += f"Job {i+1}:\n"
+        relevant_jobs += f"Title: {metadata.get('title', 'N/A')}\n"
+        relevant_jobs += f"Company: {metadata.get('company', 'N/A')}\n"
+        relevant_jobs += f"Location: {metadata.get('location', 'N/A')}\n"
+        relevant_jobs += f"Work Mode: {metadata.get('work_mode', 'N/A')}\n"
+        relevant_jobs += f"Experience: {metadata.get('experience', 'N/A')}\n"
+        relevant_jobs += f"Skills: {metadata.get('skills', 'N/A')}\n\n"
+    return relevant_jobs
   relevant_info = format_docs(docs)
   print("relevant info: ", relevant_info)
   return relevant_info
