@@ -19,7 +19,7 @@ sentence-transformers
 pypdf
 guardrails-ai
 langchain-google-genai
-"presidio-analyzer[transformers]"
+presidio-analyzer[transformers]
 presidio-anonymizer
 spacy
 pinecone
