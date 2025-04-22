@@ -2,16 +2,16 @@ from langchain_core.tools import tool
 from typing import Optional
 from core.rag import Rag
 from api.scraper import Scraper
-
+from langchain_community.tools.tavily_search import TavilySearchResults
 retriever = Rag.create_vectordb_retriever()
-
+tavily = TavilySearchResults(max_results=2)
 @tool
 def vectorstore_retriever_tool(query : str) -> str:
   """Search and return jobs according to the given user query.
 
   Args:
       query: The query to use to search the vector database
-
+      
   Returns:
       Relevant information from the vector database"""
   docs = retriever.get_relevant_documents(query)
@@ -67,3 +67,15 @@ def publicapi_retriever_tool(work_mode: Optional[str] = None, job_type: Optional
   return relevant_jobs
 
 # tools = [vectorstore_retriever_tool, publicapi_retriever_tool]
+@tool
+def career_guidance_tool(query : str) -> str:
+  """Explores online resources for providing personalized guidance to help users navigate and advance their careers.
+
+  Args:
+      query: The query to use to search from online resources.
+
+  Returns:
+      Relevant information from the internet for Personalised Career Guidance"""
+  results = tavily.invoke(input=query)
+  print("tavily result ", results)
+  return results

@@ -24,3 +24,4 @@ presidio-anonymizer
 spacy
 pinecone
 langchain_pinecone
+tavily-python

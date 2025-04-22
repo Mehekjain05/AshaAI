@@ -11,14 +11,14 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
-from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool
-from models.data_model import JobResponseList
+from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool
+from models.data_model import JobResponseList, CareerResponse
 from core.guardrails import CustomDetectPII, CustomDetectBias
 from guardrails import Guard
 
 guard = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 
-tools = [vectorstore_retriever_tool, publicapi_retriever_tool]   
+tools = [vectorstore_retriever_tool, publicapi_retriever_tool,career_guidance_tool]   
 class Node:
     def agent(state):
         """
@@ -125,3 +125,22 @@ class Node:
         if "query" in function_args:
             response = vectorstore_retriever_tool.invoke(input={"query": function_args["query"]})
         return {"messages": [ToolMessage(content=response, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}
+    
+    def career_guidance(state):
+        """
+        Generate career guidance
+
+        Args:
+            state (messages): The current state
+
+        Returns:
+            messages: The updated state with the response
+        """
+        messages = state["messages"][-1]
+        function_called = messages.additional_kwargs["function_call"]
+        function_name = function_called["name"]
+        function_args = json.loads(function_called["arguments"])
+        if "query" in function_args:
+            res = career_guidance_tool.invoke(input={"query": function_args["query"]})
+        return {"messages": [ToolMessage(content=res, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}
+        

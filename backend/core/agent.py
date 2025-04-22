@@ -17,6 +17,8 @@ class AshaAI:
                 return "vector_store_retrieve"
             elif state["messages"][-1].additional_kwargs["function_call"]["name"] == "publicapi_retriever_tool":
                 return "publicapi_retrieve"
+            elif state["messages"][-1].additional_kwargs["function_call"]["name"] == "career_guidance_tool":
+                return "career_guidance"
         return END
 
     @staticmethod
@@ -29,6 +31,7 @@ class AshaAI:
         workflow.add_node("agent", Node.agent)
         workflow.add_node("vector_store_retrieve", Node.vector_store_retrieve)
         workflow.add_node("publicapi_retrieve", Node.publicapi_retrieve)
+        workflow.add_node("career_guidance", Node.career_guidance)
         workflow.add_node(
             "generate", Node.generate
         )
@@ -40,12 +43,14 @@ class AshaAI:
             {
                 "vector_store_retrieve": "vector_store_retrieve",
                 "publicapi_retrieve": "publicapi_retrieve",
+                "career_guidance": "career_guidance",
                 END: END
             },
         )
 
         workflow.add_edge("vector_store_retrieve", "generate")
         workflow.add_edge("publicapi_retrieve", "generate")
+        workflow.add_edge("career_guidance", "generate")
         workflow.add_edge("generate", END)
         # Compile
         graph = workflow.compile(checkpointer=memory)
