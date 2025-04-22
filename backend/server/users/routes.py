@@ -25,7 +25,6 @@ def agent_chat():
         return "No message provided", 400
 
     validation_results: ValidationOutcome = GUARD.validate(user_message)
-    print("Validation Results:", validation_results)
 
     bias_detected = False
     if validation_results.validation_summaries:
@@ -65,7 +64,6 @@ def agent_chat():
             if s[0] == "messages":
                 message_chunk = s[1][0]
                 content = message_chunk.content
-                print(f"Message chunk: {message_chunk}")
 
                 if hasattr(message_chunk, "additional_kwargs") and message_chunk.additional_kwargs.get(
                     "function_call"
@@ -99,7 +97,6 @@ def agent_chat():
 
             elif s[0] == "values":
                 values_data = s[1]
-                print("VALUES DATA", values_data)
                 data = {}
                 data["payload_type"] = "values"
                 if "action" in values_data:

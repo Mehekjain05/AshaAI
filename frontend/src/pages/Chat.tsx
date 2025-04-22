@@ -17,6 +17,10 @@ import SummaryCard from '../components/SummaryCard';
 import TextToSpeechButton from '../components/TextToSpeechButton';
 import Canvas from "../components/Canvas";
 import JobCard from '../components/JobCard';
+// ***** START: Import LearningPathFlow and Flow Styles *****
+import LearningPathFlow from '../components/LearningPathFlow';
+import '@xyflow/react/dist/style.css'; // Make sure styles are imported
+// ***** END: Import LearningPathFlow and Flow Styles *****
 
 const speakText = (text: string) => {
   const synth = window.speechSynthesis;
@@ -69,7 +73,10 @@ Investing in **quality design** isn't just beneficial for users...
   const handleDocumentClick = () => {
     setShowCanvas(true);
   };
+
+  // ----- START: Parsing Functions -----
   const parseJobResponseString = (responseString: string): Array<Record<string, any>> | null => {
+    // --- Existing parseJobResponseString logic ---
     if (!responseString.trim().startsWith('[JobResponse(') || !responseString.trim().endsWith(')]')) {
       console.warn("String doesn't match expected JobResponse format:", responseString);
       return null;
@@ -82,12 +89,16 @@ Investing in **quality design** isn't just beneficial for users...
     while ((match = jobRegex.exec(responseString)) !== null) {
       const jobData: Record<string, any> = {};
       const content = match[1];
-      const pairRegex = /(\w+)\s*=\s*(?:'(.*?)'|"(\[.*?\])")/g;
+      // Adjusted regex to handle potential missing quotes or different structures slightly more robustly
+      const pairRegex = /(\w+)\s*=\s*(?:'(.*?)'|"(\[.*?\])"|(\w+))/g;
       let pairMatch;
 
       while ((pairMatch = pairRegex.exec(content)) !== null) {
         const key = pairMatch[1];
-        const value = pairMatch[2] !== undefined ? pairMatch[2] : pairMatch[3];
+        // Prioritize quoted strings, then bracketed arrays, then unquoted values
+        const value = pairMatch[2] !== undefined ? pairMatch[2] :
+                      pairMatch[3] !== undefined ? pairMatch[3] :
+                      pairMatch[4]; // Handle unquoted values like booleans or numbers if needed
         jobData[key] = value;
       }
 
@@ -97,7 +108,44 @@ Investing in **quality design** isn't just beneficial for users...
     }
 
     return jobs.length > 0 ? jobs : null;
+    // --- End of existing parseJobResponseString logic ---
   };
+
+  interface LearningPathStage {
+      stage: string;
+      topics: string[];
+  }
+
+  const parseLearningPathString = (responseString: string): LearningPathStage[] | null => {
+    if (!responseString.trim().startsWith('[LearningPath(') || !responseString.trim().endsWith(')]')) {
+        console.warn("String doesn't match expected LearningPath format:", responseString);
+        return null;
+    }
+
+    const learningPath: LearningPathStage[] = [];
+    const pathRegex = /LearningPath\(stage='([^']*)',\s*topics=\[([^\]]*)\]\)/g;
+    let match;
+
+    while ((match = pathRegex.exec(responseString)) !== null) {
+        const stage = match[1];
+        const topicsString = match[2]; // e.g., "'Math', 'Programming', 'Statistics'"
+
+        // Process the topics string: remove quotes and split
+        const topics = topicsString
+            .split(/,\s*/) // Split by comma and optional space
+            .map(topic => topic.replace(/^'(.*)'$/, '$1').trim()) // Remove surrounding single quotes
+            .filter(topic => topic); // Remove any empty strings resulting from split
+
+        if (stage && topics.length > 0) {
+            learningPath.push({ stage, topics });
+        }
+    }
+
+    return learningPath.length > 0 ? learningPath : null;
+  };
+  // ----- END: Parsing Functions -----
+
+
   const handleExternalSource = (source: string) => {
     setShowUploadMenu(false);
     if (source === 'Google Drive') {
@@ -119,6 +167,7 @@ Investing in **quality design** isn't just beneficial for users...
   };
 
   const parseMarkdown = (text: string) => {
+    // --- Existing markdown parsing logic ---
     text = text.replace("**", "<strong>").replace("**", "</strong>");
     const lines = text.split('\n');
 
@@ -146,6 +195,7 @@ Investing in **quality design** isn't just beneficial for users...
         <TextToSpeechButton text={text} />
       </div>
     );
+    // --- End of existing markdown parsing logic ---
   };
 
   const handleSend = async () => {
@@ -154,6 +204,7 @@ Investing in **quality design** isn't just beneficial for users...
     const userQuery = query; // Store the query before clearing
     setMessages(prev => [...prev, { sender: 'user', text: userQuery }]);
     setQuery('');
+    setAccumulatedCanvasContent(''); // Reset canvas content on new query
 
     try {
       const response = await fetch('/api/users/chat', {
@@ -163,11 +214,10 @@ Investing in **quality design** isn't just beneficial for users...
       });
 
       if (!response.ok) {
-          // Handle non-2xx responses specifically if needed
           const errorText = await response.text();
           console.error("Backend error:", response.status, errorText);
           setMessages(prev => [...prev, { sender: 'bot', text: `Error: ${response.status} - ${errorText || 'Failed to get response'}` }]);
-          return; // Stop processing on error
+          return;
       }
 
 
@@ -181,15 +231,16 @@ Investing in **quality design** isn't just beneficial for users...
       const decoder = new TextDecoder('utf-8');
       let done = false;
       let accumulatedContent = '';
-      let called = false;
+      let called = false; // Renamed from 'called' in original to avoid conflict/confusion? Assuming it meant 'canvas_called'
+      let isGeneratingReport = false; // More specific flag for canvas/report generation
 
       while (!done) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
 
-        if (done) break; // Exit loop if stream is finished
+        if (done) break;
 
-        const chunkValue = decoder.decode(value, { stream: true }); // Use stream: true for potentially multi-byte chars
+        const chunkValue = decoder.decode(value, { stream: true });
         const events = chunkValue.split("\n\n");
 
         for (const event of events) {
@@ -207,44 +258,52 @@ Investing in **quality design** isn't just beneficial for users...
                     sender: 'bot',
                     text: (
                         <div className="text-red-700 bg-red-100 p-3 rounded-md border border-red-300">
-                            <p><strong>Input flagged:</strong> Your message could not be processed because it was flagged for potential bias.</p>
-                            {/* Optional: Add more details from dataObj.details if needed */}
+                            <p><strong>⚠️ Biased Language: </strong> {dataObj.details.validatedOutput}</p>
                         </div>
                     )
                 }]);
-                // IMPORTANT: Stop processing further events for this request as the backend terminated.
-                return;
+                 done = true; // Stop processing further after bias detected
+                 reader.cancel(); // Cancel the stream reader
+                 break; // Exit the inner loop
             }
             // --- END: Bias Detection Handling ---
-
 
             if (dataObj.payload_type === 'values' && dataObj.error) {
               const errorMessage = dataObj.error;
               setMessages(prev => [...prev, {
                 sender: 'bot',
                 text: <AccessDeniedCard
-                  resource="Action Denied" // Make it more generic
+                  resource="Action Denied"
                   reason={errorMessage}
                   timestamp={new Date().toLocaleString()}
                 />
               }]);
-              return; // Stop further processing on this specific error type as well
+              done = true; // Stop processing on this error type
+              reader.cancel();
+              break; // Exit inner loop
             }
             else if (dataObj.payload_type === 'values' && dataObj.action === 'generate_report') {
-              setAccumulatedCanvasContent('');
-              called = true;
+              console.log("Received generate_report action");
+              setAccumulatedCanvasContent(''); // Clear previous content for the canvas
+              isGeneratingReport = true; // Set the flag
+              setShowCanvas(true); // Show canvas immediately
             }
 
-            if (called && dataObj.content) {
+            // Accumulate content specifically for the canvas if triggered
+            if (isGeneratingReport && dataObj.payload_type === 'message' && dataObj.content) {
+              console.log("Accumulating canvas content:", dataObj.content);
               setAccumulatedCanvasContent(prev => {
                 const updatedContent = prev + dataObj.content;
-                setCanvasContent(updatedContent);
+                // Update canvas content directly if needed, or let the Canvas component read accumulatedCanvasContent
+                // setCanvasContent(updatedContent); // This might cause rapid re-renders, maybe update less frequently or on close
                 return updatedContent;
               });
-              setShowCanvas(true);
+              // Don't add this canvas content to the main chat messages here
+              continue; // Skip normal message processing for canvas chunks
             }
 
-            if (dataObj.payload_type === 'message' && called == false) {
+            // Handle regular messages, function calls, tool calls (if NOT generating report)
+            if (dataObj.payload_type === 'message' && !isGeneratingReport) {
               const {
                 content,
                 function_call,
@@ -254,206 +313,125 @@ Investing in **quality design** isn't just beneficial for users...
               } = dataObj;
 
               if (function_call) {
-                console.log('function_call', function_name);
-                let spinnerText = '';
-                switch (function_name) {
-                  case 'RouteQuery':
-                    spinnerText = '🔍 Retrieving relevant documents...';
-                    break;
-                  case 'GradeDocuments':
-                    spinnerText = '📊 Re-ranking the documents...';
-                    break;
-                  case 'GenerateEmail':
-                    // Ensure arguments are correctly parsed if they arrive partially or fully
-                    let emailArgs = {};
-                    if (dataObj.arguments && typeof dataObj.arguments === 'object') {
-                        if (dataObj.arguments.status === 'incomplete') {
-                            // Handle incomplete arguments if needed, maybe wait or show partial info
-                            console.log("Incomplete email args:", dataObj.arguments.raw);
-                             spinnerText = `Generating email (gathering details)...`;
-                        } else {
-                             // Complete arguments received
-                            emailArgs = dataObj.arguments;
-                            setMessages(prev => [...prev, { sender: 'bot', text: <EmailComposer initialTo={emailArgs.to} initialSubject={emailArgs.subject} initialMessage={emailArgs.body} /> }]);
-                            // Decide if you should return here or let the stream continue if more info might come
-                            // For now, assuming email composer means the end of this specific action
-                            return;
-                        }
-                    } else if (dataObj.arguments && typeof dataObj.arguments === 'string') {
-                         // Attempt to parse if it's a string that might become valid JSON later (less common now with the backend change)
-                        console.log("Received arguments as string, might be partial:", dataObj.arguments);
-                        spinnerText = `Generating email (processing details)...`;
-                    } else {
-                         console.warn("Received function call for GenerateEmail without expected arguments structure:", dataObj.arguments);
-                         spinnerText = `Generating email...`;
-                    }
+                 // --- Existing Function Call Spinner Logic ---
+                 console.log('function_call', function_name);
+                 let spinnerText = '';
+                 let emailArgs: any = {}; // Define emailArgs here
+                 switch (function_name) {
+                   case 'RouteQuery':
+                     spinnerText = '🔍 Retrieving relevant documents...';
+                     break;
+                   case 'GradeDocuments':
+                     spinnerText = '📊 Re-ranking the documents...';
+                     break;
+                   case 'GenerateEmail':
+                     if (dataObj.arguments && typeof dataObj.arguments === 'object') {
+                         if (dataObj.arguments.status === 'incomplete') {
+                             console.log("Incomplete email args:", dataObj.arguments.raw);
+                              spinnerText = `Generating email (gathering details)...`;
+                         } else {
+                             emailArgs = dataObj.arguments;
+                             setMessages(prev => [...prev, { sender: 'bot', text: <EmailComposer initialTo={emailArgs.to} initialSubject={emailArgs.subject} initialMessage={emailArgs.body} /> }]);
+                              // Stop stream processing for this message if email composer is shown
+                              done = true;
+                              reader.cancel();
+                              break; // Exit inner loop
+                         }
+                     } else if (dataObj.arguments && typeof dataObj.arguments === 'string') {
+                          console.log("Received arguments as string, might be partial:", dataObj.arguments);
+                          spinnerText = `Generating email (processing details)...`;
+                     } else {
+                          console.warn("Received function call for GenerateEmail without expected arguments structure:", dataObj.arguments);
+                          spinnerText = `Generating email...`;
+                     }
 
-                    // Only show spinner if email composer wasn't rendered yet
-                    if (!emailArgs.to) { // Check if full args were processed and rendered
-                        setMessages(prevMessages => {
+                     if (!emailArgs.to) {
+                         // Update/add spinner message
+                         setMessages(prevMessages => {
+                             // (Spinner update logic as before)
                             const last = prevMessages[prevMessages.length - 1];
                             if (last && last.sender === 'bot' && React.isValidElement(last.text) && (last.text.type === 'div' || last.text.type === SummaryCard)) {
-                                // Replace last spinner/summary card
                                 const updated = [...prevMessages];
                                 updated[updated.length - 1] = {
                                     ...last,
-                                    text: (
-                                        <div className="flex items-center gap-2 text-gray-600">
-                                            <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" />
-                                            <span>{spinnerText}</span>
-                                        </div>
-                                    ),
+                                    text: ( <div className="flex items-center gap-2 text-gray-600"> <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" /> <span>{spinnerText}</span> </div> ),
                                 };
                                 return updated;
                             } else {
-                                // Add new spinner message
-                                return [...prevMessages, {
-                                    sender: 'bot',
-                                    text: (
-                                        <div className="flex items-center gap-2 text-gray-600">
-                                            <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" />
-                                            <span>{spinnerText}</span>
-                                        </div>
-                                    )
-                                }];
+                                return [...prevMessages, { sender: 'bot', text: ( <div className="flex items-center gap-2 text-gray-600"> <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" /> <span>{spinnerText}</span> </div> ) }];
                             }
-                        });
-                    }
-                    break; // Break from switch case
+                         });
+                     }
+                     break; // Break from switch case
 
-                  default:
-                    spinnerText = `Running ${function_name}...`;
-                }
+                   default:
+                     spinnerText = `Running ${function_name}...`;
+                 }
 
-                // Generic spinner logic (if not handled by specific case like email)
-                if(spinnerText && !emailArgs.to) { // Only show generic spinner if not handled above
-                   setMessages(prevMessages => {
+                 if(spinnerText && !emailArgs.to) {
+                    setMessages(prevMessages => {
+                       // (Generic spinner update/add logic as before)
                       const last = prevMessages[prevMessages.length - 1];
-                      if (last && last.sender === 'bot' && React.isValidElement(last.text) && (last.text.type === 'div' || last.text.type === SummaryCard)) {
-                          const updated = [...prevMessages];
-                          updated[updated.length - 1] = {
-                              ...last,
-                              text: (
-                                  <div className="flex items-center gap-2 text-gray-600">
-                                      <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" />
-                                      <span>{spinnerText}</span>
-                                  </div>
-                              ),
-                          };
-                          return updated;
+                      if (last && last.sender === 'bot' && React.isValidElement(last.text) && (last.text.type === 'div' || last.text.type === SummaryCard) ) {
+                           const updated = [...prevMessages];
+                           updated[updated.length - 1] = { ...last, text: ( <div className="flex items-center gap-2 text-gray-600"> <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" /> <span>{spinnerText}</span> </div> ), };
+                            return updated;
                       } else {
-                           return [...prevMessages, {
-                              sender: 'bot',
-                              text: (
-                                  <div className="flex items-center gap-2 text-gray-600">
-                                      <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" />
-                                      <span>{spinnerText}</span>
-                                  </div>
-                              ),
-                          }];
+                           return [...prevMessages, { sender: 'bot', text: ( <div className="flex items-center gap-2 text-gray-600"> <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" /> <span>{spinnerText}</span> </div> ), }];
                       }
-                  });
-                }
+                   });
+                 }
+                 // --- End of Function Call Spinner Logic ---
 
               } else if (tool_call) {
-                setMessages(prevMessages => {
-                    const spinnerText = `Using tool: ${tool_name || 'Processing'}...`;
+                 // --- Existing Tool Call Spinner Logic ---
+                 setMessages(prevMessages => {
+                     const spinnerText = `Using tool: ${tool_name || 'Processing'}...`;
+                     // (Spinner update/add logic as before)
                     const last = prevMessages[prevMessages.length - 1];
                     if (last && last.sender === 'bot' && React.isValidElement(last.text) && (last.text.type === 'div' || last.text.type === SummaryCard) ) {
                          const updated = [...prevMessages];
-                         updated[updated.length - 1] = {
-                              ...last,
-                              text: (
-                                  <div className="flex items-center gap-2 text-gray-600">
-                                      <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" />
-                                      <span>{spinnerText}</span>
-                                  </div>
-                              ),
-                          };
+                         updated[updated.length - 1] = { ...last, text: ( <div className="flex items-center gap-2 text-gray-600"> <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" /> <span>{spinnerText}</span> </div> ), };
                           return updated;
                     } else {
-                         return [...prevMessages, {
-                              sender: 'bot',
-                              text: (
-                                  <div className="flex items-center gap-2 text-gray-600">
-                                      <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" />
-                                      <span>{spinnerText}</span>
-                                  </div>
-                              ),
-                          }];
+                         return [...prevMessages, { sender: 'bot', text: ( <div className="flex items-center gap-2 text-gray-600"> <span className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full" /> <span>{spinnerText}</span> </div> ), }];
                     }
-                });
+                 });
+                 // --- End of Tool Call Spinner Logic ---
               } else if (content) {
+                // Accumulate regular content
                 accumulatedContent += content;
 
+                // Update the UI progressively with SummaryCard
                 setMessages(prevMessages => {
                     const updated = [...prevMessages];
                     const last = updated.length > 0 ? updated[updated.length - 1] : null;
-
-                    // Logic to update the last bot message if it exists and isn't a special component
-                    if (last && last.sender === 'bot') {
-                         // Check if the last message is the spinner or a plain text/markdown message
-                         let isUpdateable = false;
-                         if (typeof last.text === 'string') {
-                             isUpdateable = true;
-                         } else if (React.isValidElement(last.text)) {
-                             // Update if it's the spinner div or the SummaryCard wrapper div
-                             if (last.text.type === 'div' && last.text.props?.className?.includes('animate-spin')) {
-                                 isUpdateable = true;
-                             } else if (last.text.type === 'div' && last.text.props?.children?.type === SummaryCard) {
-                                 // If it's already a SummaryCard, update its content
-                                 isUpdateable = true;
-                             } else if (last.text.type === 'div' && !React.isValidElement(last.text.props.children)) {
-                                // Handle simple div wrappers around markdown from previous updates
-                                 isUpdateable = true;
-                             }
+                    let isUpdateable = false;
+                     if (last && last.sender === 'bot') {
+                        // Check if last message is suitable for update (spinner or previous summary card)
+                         if (typeof last.text === 'string') { isUpdateable = true; }
+                         else if (React.isValidElement(last.text)) {
+                             if (last.text.type === 'div' && last.text.props?.className?.includes('animate-spin')) { isUpdateable = true; }
+                              else if (last.text.type === 'div' && last.text.props?.children?.type === SummaryCard) { isUpdateable = true; }
+                              else if (last.text.type === 'div' && !React.isValidElement(last.text.props.children)) { isUpdateable = true; }
                          }
+                     }
 
-                         if (isUpdateable) {
-                            // Update the last message with new accumulated content, wrapped in SummaryCard
-                             updated[updated.length - 1] = {
-                                 ...last,
-                                 text: (
-                                     <div> {/* Outer div might be needed if SummaryCard isn't the only thing */}
-                                         <SummaryCard
-                                             title="Response"
-                                             content={parseMarkdown(accumulatedContent)}
-                                             timestamp={new Date().toLocaleString()}
-                                         />
-                                     </div>
-                                 ),
-                             };
-                         } else {
-                              // If the last message is not updateable (e.g., EmailComposer, JobCard), add a new message
-                              updated.push({
-                                 sender: 'bot',
-                                 text: (
-                                     <div>
-                                         <SummaryCard
-                                             title="Response"
-                                             content={parseMarkdown(accumulatedContent)}
-                                             timestamp={new Date().toLocaleString()}
-                                         />
-                                     </div>
-                                 ),
-                             });
-                         }
+                     const newContentElement = (
+                         <div>
+                             <SummaryCard
+                                 title="Response"
+                                 content={parseMarkdown(accumulatedContent)}
+                                 timestamp={new Date().toLocaleString()}
+                             />
+                         </div>
+                     );
 
-                    } else {
-                        // If no previous bot message exists, add a new one
-                        updated.push({
-                            sender: 'bot',
-                            text: (
-                                <div>
-                                    <SummaryCard
-                                        title="Response"
-                                        content={parseMarkdown(accumulatedContent)}
-                                        timestamp={new Date().toLocaleString()}
-                                    />
-                                </div>
-                            ),
-                        });
-                    }
+                     if (isUpdateable && last) {
+                         updated[updated.length - 1] = { ...last, text: newContentElement };
+                     } else {
+                         updated.push({ sender: 'bot', text: newContentElement });
+                     }
                     return updated;
                 });
               }
@@ -461,37 +439,56 @@ Investing in **quality design** isn't just beneficial for users...
 
           } catch (err) {
             console.error("Error parsing stream chunk", err, "Data string:", dataStr);
-             // Optionally display a more subtle error in the chat if chunks fail to parse
-             // setMessages(prev => [...prev, { sender: 'bot', text: '(Error processing part of the response)' }]);
           }
-        }
-      }
+          if(done) break; // Exit outer loop if done flag was set inside
+        } // end for loop over events
+      } // end while(!done) loop for reader
 
-      // Final response processing (after stream ends)
-      // Check if the last message was a spinner and needs replacement or if specific components need rendering based on keywords.
-      // This section might need adjustments based on whether the final content requires special rendering beyond the SummaryCard used during streaming.
+      // ----- START: Final Response Processing (After Stream Ends) -----
+      console.log("Stream finished. Final accumulated content:", accumulatedContent);
+      console.log("Was generating report:", isGeneratingReport);
 
+       // If generating a report, the canvas handles the display based on accumulatedCanvasContent.
+       // No need to add a final message here unless explicitly desired (e.g., "Report generated.")
+       if (isGeneratingReport) {
+           console.log("Final processing skipped as report was generated in canvas.");
+           // Optional: Update canvas content one last time if needed, or add a simple "Done" message.
+           setCanvasContent(accumulatedCanvasContent); // Ensure final canvas content is set
+           return; // Stop further processing in chat messages
+       }
+
+
+       // Attempt to parse specific formats from the *final* accumulated content
+       let parsedLearningPath: LearningPathStage[] | null = null;
        let parsedJobs: Array<Record<string, any>> | null = null;
-       if (typeof accumulatedContent === 'string' && accumulatedContent.trim().startsWith('[JobResponse(')) {
-            console.log("Attempting to parse JobResponse string:", accumulatedContent);
-            parsedJobs = parseJobResponseString(accumulatedContent);
-            if (parsedJobs) {
-                console.log("Successfully parsed jobs:", parsedJobs);
+
+       if (typeof accumulatedContent === 'string' && accumulatedContent.trim()) {
+            // Try parsing LearningPath first
+            parsedLearningPath = parseLearningPathString(accumulatedContent);
+            if (parsedLearningPath) {
+                console.log("Successfully parsed final content as LearningPath:", parsedLearningPath);
             } else {
-                console.log("Failed to parse JobResponse string.");
-                // Keep accumulatedContent as is for potential fallback text display
+                // If not LearningPath, try parsing JobResponse
+                parsedJobs = parseJobResponseString(accumulatedContent);
+                if (parsedJobs) {
+                    console.log("Successfully parsed final content as JobResponse:", parsedJobs);
+                } else {
+                    console.log("Final content is neither LearningPath nor JobResponse. Treating as text or keyword.");
+                }
             }
-        }
+       }
 
 
-       // --- Update last message or add new based on final content ---
+       // --- Determine the final message element based on parsing results or keywords ---
        setMessages(prevMessages => {
             const updated = [...prevMessages];
             const last = updated.length > 0 ? updated[updated.length - 1] : null;
 
             let finalContentElement: JSX.Element | string | null = null;
 
-            if (parsedJobs) {
+            if (parsedLearningPath) {
+                 finalContentElement = <LearningPathFlow pathData={parsedLearningPath} />;
+            } else if (parsedJobs) {
                 finalContentElement = (
                     <div className="space-y-4">
                         <p className="text-sm text-gray-600 font-medium mb-2">Here are the job listings I found:</p>
@@ -503,20 +500,15 @@ Investing in **quality design** isn't just beneficial for users...
             } else if (accumulatedContent === 'show_calendar') {
                 finalContentElement = <CalendarPopup />;
             } else if (accumulatedContent === 'email_composer') {
-                 // This case might be redundant if GenerateEmail function call handles it earlier
                  finalContentElement = <EmailComposer />;
             } else if (accumulatedContent === 'file_preview') {
                  finalContentElement = <FilePreview filename="test.csv" fileSize="10kb" fileType="xlsx" timestamp="April 5, 2025 – 9:42 AM" />;
             } else if (accumulatedContent === 'pdf_preview') {
                  finalContentElement = <PDFPreview filename="test.pdf" fileSize="1.2MB" timestamp="April 5, 2025 – 9:42 AM" />;
             }
-             // Add other keyword checks if necessary
-
-             // Fallback to displaying the accumulated text if it wasn't handled above and wasn't a special component trigger
-             // Also make sure we don't overwrite component messages like JobCard/EmailComposer if they were the last real output
-            else if (typeof accumulatedContent === 'string' && accumulatedContent.trim() && !called) {
-                 console.log("Handling final accumulated content as text:", accumulatedContent);
-                 // Wrap in SummaryCard similar to streaming updates for consistency
+             // Fallback: If content exists but didn't match special formats/keywords, display it using SummaryCard
+            else if (typeof accumulatedContent === 'string' && accumulatedContent.trim()) {
+                 console.log("Handling final accumulated content as text in SummaryCard:", accumulatedContent);
                  finalContentElement = (
                      <div>
                          <SummaryCard
@@ -529,49 +521,43 @@ Investing in **quality design** isn't just beneficial for users...
             }
 
 
-            // Update logic: Only update the last message if it was a spinner or a simple text/summary card.
-            // Otherwise, add a new message.
+            // --- Update last message or add new based on final content ---
             if (finalContentElement) {
+                let shouldUpdateLast = false;
                 if (last && last.sender === 'bot') {
-                    let shouldUpdateLast = false;
-                    if (typeof last.text === 'string') {
-                         shouldUpdateLast = true;
-                    } else if (React.isValidElement(last.text)) {
-                        // Check if it's the spinner or the SummaryCard wrapper
-                         if (last.text.type === 'div' && last.text.props?.className?.includes('animate-spin')) {
-                             shouldUpdateLast = true;
-                         } else if (last.text.type === 'div' && last.text.props?.children?.type === SummaryCard) {
-                             shouldUpdateLast = true;
-                         } else if (last.text.type === 'div' && !React.isValidElement(last.text.props.children)) {
-                             shouldUpdateLast = true; // Simple div wrapper from markdown
-                         }
+                    // Check if last message was a spinner or a progressively updated SummaryCard
+                    if (typeof last.text === 'string') { shouldUpdateLast = true; }
+                     else if (React.isValidElement(last.text)) {
+                         if (last.text.type === 'div' && last.text.props?.className?.includes('animate-spin')) { shouldUpdateLast = true; }
+                          else if (last.text.type === 'div' && last.text.props?.children?.type === SummaryCard) { shouldUpdateLast = true; } // Updated during stream
+                          else if (last.text.type === 'div' && !React.isValidElement(last.text.props.children)) { shouldUpdateLast = true; }
                     }
+                }
 
-                    if (shouldUpdateLast) {
-                         updated[updated.length - 1] = { ...last, text: finalContentElement };
-                    } else {
-                        // Last message was something specific (Email, JobCard, etc.), so add the new content after it.
-                         updated.push({ sender: 'bot', text: finalContentElement });
-                    }
+                if (shouldUpdateLast && last) {
+                     updated[updated.length - 1] = { ...last, text: finalContentElement };
                 } else {
-                     // No previous bot message or last was user message, add new.
+                    // Add as a new message if last wasn't updateable or didn't exist
                     updated.push({ sender: 'bot', text: finalContentElement });
                 }
-            } else if (!called && !accumulatedContent && last && last.sender === 'bot' && React.isValidElement(last.text) && last.text.type === 'div' && last.text.props?.className?.includes('animate-spin')) {
-                 // If the stream ended with only a spinner and no content, maybe replace spinner with a generic message
-                 updated[updated.length - 1] = { ...last, text: "(No further response generated)" };
+            } else if (last && last.sender === 'bot' && React.isValidElement(last.text) && last.text.type === 'div' && last.text.props?.className?.includes('animate-spin') && !accumulatedContent) {
+                 // If stream ended with only a spinner and no content, replace spinner
+                 updated[updated.length - 1] = { ...last, text: "(No specific response generated)" };
+            } else {
+                 console.log("No final content element generated for accumulated content:", accumulatedContent);
+                 // Optionally remove a spinner if it's the last message and no content followed
+                  if (last && last.sender === 'bot' && React.isValidElement(last.text) && last.text.type === 'div' && last.text.props?.className?.includes('animate-spin')) {
+                      updated.pop(); // Remove the spinner if nothing replaced it
+                  }
             }
-             else {
-                 console.log("Final accumulatedContent didn't match any specific handler or was empty/canvas-related:", accumulatedContent);
-             }
 
             return updated;
         });
+      // ----- END: Final Response Processing -----
 
 
     } catch (err) {
       console.error("Streaming error:", err);
-      // Update the last message if it was a spinner, otherwise add a new error message
        setMessages(prevMessages => {
            const updated = [...prevMessages];
            const last = updated.length > 0 ? updated[updated.length - 1] : null;
@@ -584,9 +570,13 @@ Investing in **quality design** isn't just beneficial for users...
            }
            return updated;
        });
+    } finally {
+        // Reset flags after processing is complete or errored
+        // setIsGeneratingReport(false); // This state isn't used outside handleSend, but good practice if it were
     }
   };
 
+  // --- handleVoiceInput, handleFileUpload, submitFilesWithConfidentiality remain unchanged ---
   const handleVoiceInput = () => {
     const recognition = new (window.SpeechRecognition || (window as any).webkitSpeechRecognition)();
     recognition.lang = 'en-US';
@@ -601,6 +591,8 @@ Investing in **quality design** isn't just beneficial for users...
       const transcript = event.results[0][0].transcript;
       setQuery(transcript);
       setListening(false);
+      // Optional: Automatically send after voice input
+      // handleSend(); // Consider adding this if desired UX
     };
 
     recognition.onerror = (event) => {
@@ -671,10 +663,12 @@ Investing in **quality design** isn't just beneficial for users...
     }
   };
 
+  // --- JSX Return Structure remains the same ---
   return (
     <div className="flex h-screen bg-white">
       <main className="flex-1 flex flex-col h-screen relative bg-gray-50">
 
+        {/* --- Existing Modals/Pickers (GDrive, Notion, Dropbox, UploadNotification, ConfidentialityModal) --- */}
         {showGDrivePicker && (
           <div className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-30 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl p-6 shadow-lg max-w-2xl w-full">
@@ -740,8 +734,6 @@ Investing in **quality design** isn't just beneficial for users...
               }}
               onClose={() => {
                 setShowNotionPicker(false);
-                // Optional: Add a message if closed without selection
-                // setMessages(prev => [...prev, { sender: 'bot', text: 'Notion selection closed.' }]);
                 }}
             />
           </div>
@@ -778,8 +770,6 @@ Investing in **quality design** isn't just beneficial for users...
                       }}
                       onClose={() => {
                           setShowDropboxPicker(false);
-                          // Optional: Add message on close
-                          // setMessages(prev => [...prev, { sender: 'bot', text: 'Dropbox selection closed.' }]);
                       }}
                    />
                </div>
@@ -804,7 +794,6 @@ Investing in **quality design** isn't just beneficial for users...
                   className="w-full text-left p-3 rounded hover:bg-blue-50 bg-gray-50 border border-gray-200 transition-colors duration-150 flex items-center gap-3"
                   disabled={isUploading}
                 >
-                 {/* Icon suggestion (optional) <FaGlobeAmericas className="text-blue-500"/> */}
                  <div>
                     <span className='font-medium text-gray-700'>Public</span>
                     <p className="text-xs text-gray-500">Accessible by anyone, no restrictions.</p>
@@ -815,7 +804,6 @@ Investing in **quality design** isn't just beneficial for users...
                   className="w-full text-left p-3 rounded hover:bg-yellow-50 bg-gray-50 border border-gray-200 transition-colors duration-150 flex items-center gap-3"
                    disabled={isUploading}
                >
-                 {/* Icon suggestion (optional) <FaUserLock className="text-yellow-500"/> */}
                   <div>
                     <span className='font-medium text-gray-700'>Restricted</span>
                     <p className="text-xs text-gray-500">Accessible only by authorized internal users.</p>
@@ -826,7 +814,6 @@ Investing in **quality design** isn't just beneficial for users...
                   className="w-full text-left p-3 rounded hover:bg-red-50 bg-gray-50 border border-gray-200 transition-colors duration-150 flex items-center gap-3"
                   disabled={isUploading}
                 >
-                 {/* Icon suggestion (optional) <FaLock className="text-red-500"/> */}
                   <div>
                     <span className='font-medium text-gray-700'>Confidential</span>
                     <p className="text-xs text-gray-500">Highly sensitive, requires specific clearance.</p>
@@ -850,117 +837,123 @@ Investing in **quality design** isn't just beneficial for users...
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24"> {/* Added more padding bottom */}
+
+        {/* Message Display Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24"> {/* Ensure padding-bottom */}
           {messages.map((msg, idx) => (
             <div
-              key={idx}
-              className={`flex items-start max-w-xl lg:max-w-2xl xl:max-w-3xl gap-3 ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
-                }`}
-            >
-              <div className={`text-2xl mt-1 ${msg.sender === 'user' ? 'text-blue-600' : 'text-indigo-600'}`}>
-                {msg.sender === 'user' ? <FaUserCircle /> : <FaRobot />}
-              </div>
-              <div
-                className={`px-4 py-2 rounded-lg shadow-sm text-sm ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-200 text-gray-800'
-                  }`}
-              >
-                {/* Render string or JSX elements */}
-                {typeof msg.text === 'string' ? parseMarkdown(msg.text) : msg.text}
-              </div>
+            key={idx} // Consider more stable keys if messages can be reordered/deleted
+            className={`flex items-start max-w-xl lg:max-w-2xl xl:max-w-3xl gap-3 ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
+              }`}
+          >
+            <div className={`text-2xl mt-1 ${msg.sender === 'user' ? 'text-blue-600' : 'text-indigo-600'}`}>
+              {msg.sender === 'user' ? <FaUserCircle /> : <FaRobot />}
             </div>
+            <div
+              className={`px-4 py-2 rounded-lg shadow-sm text-sm ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-200 text-gray-800'
+                } ${React.isValidElement(msg.text) ? 'w-full' : ''}`} // Allow components to take more width if needed
+            >
+              {/* Render string or JSX elements */}
+              {typeof msg.text === 'string' ? parseMarkdown(msg.text) : msg.text}
+            </div>
+          </div>
           ))}
-           {/* Scroll anchor or observer might be needed here for auto-scrolling */}
+           {/* Add a ref here if you need manual scroll control */}
         </div>
 
-        {/* Chat Input Area - sticky bottom */}
+
+        {/* Chat Input Area */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-gradient-to-t from-white via-gray-50 to-gray-50 px-4 py-3">
             <div className="flex items-center max-w-3xl mx-auto">
-              <div className="relative">
-                <button
-                  onClick={() => setShowUploadMenu(prev => !prev)}
-                  className="mr-2 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full text-xl transition-colors duration-150"
-                  title="Attach file"
-                >
-                  <FaPaperclip />
-                </button>
+               {/* --- Existing Input Elements (Attach, Input, Voice, Send) --- */}
+                <div className="relative">
+                    <button
+                    onClick={() => setShowUploadMenu(prev => !prev)}
+                    className="mr-2 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full text-xl transition-colors duration-150"
+                    title="Attach file"
+                    >
+                    <FaPaperclip />
+                    </button>
 
-                {showUploadMenu && (
-                  <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 shadow-lg rounded-md z-20 w-56 text-sm overflow-hidden">
-                    <button
-                      onClick={() => {
-                        fileInputRef.current?.click();
-                        setShowUploadMenu(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
-                    >
-                      <FaRegFileAlt className="text-gray-500" /> Upload Document
-                    </button>
-                    <div className="border-t border-gray-100 px-4 py-1.5 text-xs text-gray-400 font-medium">
-                      Use Other Sources
+                    {showUploadMenu && (
+                    <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 shadow-lg rounded-md z-20 w-56 text-sm overflow-hidden">
+                        <button
+                        onClick={() => {
+                            fileInputRef.current?.click();
+                            setShowUploadMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
+                        >
+                        <FaRegFileAlt className="text-gray-500" /> Upload Document
+                        </button>
+                        <div className="border-t border-gray-100 px-4 py-1.5 text-xs text-gray-400 font-medium">
+                        Use Other Sources
+                        </div>
+                        <button
+                        onClick={() => handleExternalSource('Google Drive')}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
+                        >
+                        <FcGoogle /> Google Drive
+                        </button>
+                        <button
+                        onClick={() => handleExternalSource('Dropbox')}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
+                        >
+                        <FaDropbox className="text-blue-600" /> Dropbox
+                        </button>
+                        <button
+                        onClick={() => handleExternalSource('Notion')}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
+                        >
+                        <SiNotion className="text-black" /> Notion
+                        </button>
                     </div>
-                    <button
-                      onClick={() => handleExternalSource('Google Drive')}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
-                    >
-                      <FcGoogle /> Google Drive
-                    </button>
-                    <button
-                      onClick={() => handleExternalSource('Dropbox')}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
-                    >
-                      <FaDropbox className="text-blue-600" /> Dropbox
-                    </button>
-                    <button
-                      onClick={() => handleExternalSource('Notion')}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
-                    >
-                      <SiNotion className="text-black" /> Notion
-                    </button>
-                  </div>
-                )}
+                    )}
+
+                    <input
+                    type="file"
+                    multiple
+                    hidden
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".pdf,.doc,.docx,.txt,.csv,.md" // Specify acceptable file types
+                    />
+                </div>
 
                 <input
-                  type="file"
-                  multiple
-                  hidden
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx,.txt,.csv,.md" // Specify acceptable file types
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Ask Asha anything..."
+                    className="flex-1 border border-gray-300 rounded-full px-4 py-2 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 text-sm"
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }}} // Send on Enter, allow Shift+Enter for newline
                 />
-              </div>
 
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask Asha anything..."
-                className="flex-1 border border-gray-300 rounded-full px-4 py-2 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 text-sm"
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }}} // Send on Enter, allow Shift+Enter for newline
-              />
+                <button
+                    onClick={handleVoiceInput}
+                    className={`mr-2 p-2 rounded-full text-xl transition-colors duration-150 ${listening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                    title={listening? "Listening..." : "Use voice input"}
+                >
+                    <FaMicrophone />
+                </button>
 
-              <button
-                onClick={handleVoiceInput}
-                className={`mr-2 p-2 rounded-full text-xl transition-colors duration-150 ${listening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                  title={listening? "Listening..." : "Use voice input"}
-              >
-                <FaMicrophone />
-              </button>
-
-              <button
-                onClick={handleSend}
-                className="bg-blue-500 text-white px-5 py-2 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 disabled:opacity-50 text-sm font-medium"
-                disabled={!query.trim()} // Disable if query is empty
-              >
-                Send
-              </button>
-          </div>
+                <button
+                    onClick={handleSend}
+                    className="bg-blue-500 text-white px-5 py-2 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-1 disabled:opacity-50 text-sm font-medium"
+                    disabled={!query.trim() || isUploading} // Also disable send while uploading
+                >
+                    Send
+                </button>
+            </div>
         </div>
       </main>
+      {/* Canvas - only render if showCanvas is true */}
       {showCanvas && (
         <Canvas
           initialTitle={canvasTitle}
-          content={accumulatedCanvasContent || canvasContent} // Use accumulated content first
+          // Pass the dynamically updated content for the canvas
+          content={accumulatedCanvasContent || canvasContent}
           onClose={handleCanvasClose}
           isVisible={showCanvas}
         />
