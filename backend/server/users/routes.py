@@ -10,7 +10,7 @@ from core.agent import AshaAI
 from core.guardrails import CustomDetectPII, CustomDetectBias
 from guardrails import Guard
 from guardrails.classes import ValidationOutcome
-from backend.server.admin.admin_db import insert_analytics_record
+from ..admin.admin_db import insert_analytics_record
 import time
 users = Blueprint(name='users', import_name=__name__)
 
@@ -123,6 +123,7 @@ def agent_chat():
 
                 if len(data) > 1:
                      yield f"data: {json.dumps(data)}\n\n".encode("utf-8")
+    
     response_time_ms = int((time.time() - start_time) * 1000)
    
     analytics_data = {
