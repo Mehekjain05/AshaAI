@@ -40,7 +40,7 @@ class Node:
             [
             {
                 "role": "system",
-                "content": f"""You are a helpful assistant"""
+                "content": f"""You are a helpful assistant. Based on the context, decide whether to call the vector database or if the user requires more options and needs to call APIs"""
             },
             *state["messages"]
         ]
@@ -66,7 +66,7 @@ class Node:
                 [
                     {
                         "role": "system",
-                        "content": f"""You are a helpful assistant"""
+                        "content": f"""You are a helpful assistant."""
                     },
                     *state["messages"],
                 ]
