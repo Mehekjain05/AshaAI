@@ -10,14 +10,18 @@ from core.agent import AshaAI
 from core.guardrails import CustomDetectPII, CustomDetectBias
 from guardrails import Guard
 from guardrails.classes import ValidationOutcome
-
+from backend.server.admin.admin_db import insert_analytics_record
+import time
 users = Blueprint(name='users', import_name=__name__)
 
 GUARD = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 ASHA = AshaAI.create_agent()
 
+start_time = time.time()
+
 @users.route("/chat", methods=["GET", "POST"])
 def agent_chat():
+    user_id = "user-123"
     data: dict = request.get_json()
     user_message = data.get("query")
 
@@ -32,7 +36,18 @@ def agent_chat():
              if summary.validator_name == 'CustomDetectBias':
                 bias_detected = True
                 break
-
+    
+    def detect_query_type(query: str) -> str:
+        q = query.lower()
+        if "job" in q or "internship" in q:
+            return "job"
+        elif "event" in q or "webinar" in q:
+            return "events"
+        elif "career" in q or "guidance" in q:
+            return "career_guidance"
+        else:
+            return "other"
+    
     def generate():
         if bias_detected:
             error_data = {
@@ -49,7 +64,7 @@ def agent_chat():
                 {"role": "user", "content": validation_results.validated_output},
             ]
         }
-        config = {"configurable": {"user_id": "user-123", "thread_id": "1"}}
+        config = {"configurable": {"user_id": user_id, "thread_id": "1"}}
 
         for s in ASHA.stream(
             inputs, config=config, stream_mode=["values", "messages"]
@@ -108,7 +123,18 @@ def agent_chat():
 
                 if len(data) > 1:
                      yield f"data: {json.dumps(data)}\n\n".encode("utf-8")
+    response_time_ms = int((time.time() - start_time) * 1000)
+   
+    analytics_data = {
+    "user_id": user_id,  # Replace with real user ID if dynamic
+    "user_query": validation_results.validated_output,
+    "query_type": detect_query_type(user_message),
+    "page_visited": "chatbot",
+    "response_time_ms": response_time_ms
+    # "clicked_job_id": None,  # Update this when job click is implemented
 
+    }
+    insert_analytics_record(analytics_data)
     return Response(
         stream_with_context(generate()),
         mimetype="text/event-stream",
