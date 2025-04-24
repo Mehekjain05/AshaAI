@@ -7,6 +7,7 @@ import Navbar from "./components/Navbar";
 import Community from "./pages/Community";
 import Learning from "./pages/Learning";
 import Chat from "./pages/Chat";
+import RoadMap from "./components/Roadmap";
 
 function AppContent() {
   const location = useLocation();
@@ -24,6 +25,7 @@ function AppContent() {
           <Route path="/learning" element={<Learning />} />
           <Route path="/community" element={<Community />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/roadmap" element={<RoadMap />} />
         </Routes>
       </div>
     </div>

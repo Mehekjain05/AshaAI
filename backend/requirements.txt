@@ -12,7 +12,6 @@ langchain_experimental
 langmem
 langchain-google-genai
 tavily-python
-chromadb
 langchainhub
 faiss-cpu
 sentence-transformers
@@ -23,3 +22,5 @@ presidio-analyzer[transformers]
 presidio-anonymizer
 spacy
 pinecone
+langchain_pinecone
+tavily-python

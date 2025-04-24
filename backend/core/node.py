@@ -1,24 +1,17 @@
-from typing import Annotated, Sequence
-from typing_extensions import TypedDict
 from langchain_core.messages import BaseMessage, ToolMessage
 from langgraph.graph.message import add_messages
 from ast import arguments
-from typing import Annotated, Literal, Sequence, List
-from typing_extensions import TypedDict
 import json
-from langchain import hub
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
-from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool
-from models.data_model import JobResponseList
+from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool
+from models.data_model import JobResponseList, CareerResponse
 from core.guardrails import CustomDetectPII, CustomDetectBias
 from guardrails import Guard
 
 guard = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 
-tools = [vectorstore_retriever_tool, publicapi_retriever_tool]   
+tools = [vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool]   
 class Node:
     def agent(state):
         """
@@ -72,6 +65,19 @@ class Node:
                 ]
             )
             return {"messages": [AIMessage(content=str(response.jobs), additional_kwargs={}, response_metadata={'prompt_feedback': {'block_reason': 0, 'safety_ratings': []}, 'finish_reason': 'STOP', 'model_name': 'gemini-2.0-flash', 'safety_ratings': []})]}
+        elif messages[-1].name == "career_guidance_tool":
+            structured_model = model.with_structured_output(CareerResponse)
+            response = structured_model.invoke(
+                [
+                    {
+                        "role": "system",
+                        "content": f"""You are a helpful assistant"""
+                    },
+                    *state["messages"],
+                ]
+            )
+            print("CAREER RESPONSE", response)
+            return {"messages": [AIMessage(content=str(response.learning_path), additional_kwargs={}, response_metadata={'prompt_feedback': {'block_reason': 0, 'safety_ratings': []}, 'finish_reason': 'STOP', 'model_name': 'gemini-2.0-flash', 'safety_ratings': []})]}
         response = model.invoke(
             [
             {
@@ -81,7 +87,6 @@ class Node:
             *state["messages"],
         ]
         )
-        # print("NEW RESPONSE", response)
         return {"messages": [response]}
 
     def publicapi_retrieve(state):
@@ -125,3 +130,22 @@ class Node:
         if "query" in function_args:
             response = vectorstore_retriever_tool.invoke(input={"query": function_args["query"]})
         return {"messages": [ToolMessage(content=response, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}
+    
+    def career_guidance(state):
+        """
+        Generate career guidance
+
+        Args:
+            state (messages): The current state
+
+        Returns:
+            messages: The updated state with the response
+        """
+        messages = state["messages"][-1]
+        function_called = messages.additional_kwargs["function_call"]
+        function_name = function_called["name"]
+        function_args = json.loads(function_called["arguments"])
+        if "query" in function_args:
+            res = career_guidance_tool.invoke(input={"query": function_args["query"]})
+        return {"messages": [ToolMessage(content=res, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}
+        

@@ -2,58 +2,91 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
-
+os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
 
 from flask import Blueprint, request, jsonify, Response, stream_with_context
 import json
 from core.agent import AshaAI
+from core.guardrails import CustomDetectPII, CustomDetectBias
+from guardrails import Guard
+from guardrails.classes import ValidationOutcome
 
 users = Blueprint(name='users', import_name=__name__)
+
+GUARD = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 ASHA = AshaAI.create_agent()
-@users.route("/chat", methods = ["GET", "POST"])
+
+@users.route("/chat", methods=["GET", "POST"])
 def agent_chat():
     data: dict = request.get_json()
     user_message = data.get("query")
+
     if not user_message:
         return "No message provided", 400
 
-    inputs = {
-        "messages":[
-            {"role": "user", "content": user_message},
-        ]
-    }
-    config = {"configurable": {"user_id": "user-123", "thread_id": "1"}}
+    validation_results: ValidationOutcome = GUARD.validate(user_message)
 
+    bias_detected = False
+    if validation_results.validation_summaries:
+        for summary in validation_results.validation_summaries:
+             if summary.validator_name == 'CustomDetectBias':
+                bias_detected = True
+                break
 
     def generate():
+        if bias_detected:
+            error_data = {
+                "payload_type": "validation_error",
+                "validator": "CustomDetectBias",
+                "outcome": "fail",
+                "details": validation_results.to_dict()
+            }
+            yield f"data: {json.dumps(error_data)}\n\n".encode("utf-8")
+            return
+
+        inputs = {
+            "messages": [
+                {"role": "user", "content": validation_results.validated_output},
+            ]
+        }
+        config = {"configurable": {"user_id": "user-123", "thread_id": "1"}}
+
         for s in ASHA.stream(
             inputs, config=config, stream_mode=["values", "messages"]
         ):
-            # print(f"\n\nStreamed response: \n{s}\n\n")
             function_name = None
             arguments = None
             function_call = False
             tool_call = False
             tool_name = None
-            if s[0]=="messages":
-                s = s[1]
-                if hasattr(s[0], "additional_kwargs") and s[0].additional_kwargs.get(
+            content = None
+
+            if s[0] == "messages":
+                message_chunk = s[1][0]
+                content = message_chunk.content
+
+                if hasattr(message_chunk, "additional_kwargs") and message_chunk.additional_kwargs.get(
                     "function_call"
                 ):
-                    print(f"Function call: {s[0].additional_kwargs['function_call']}")
+                    print(f"Function call: {message_chunk.additional_kwargs['function_call']}")
                     function_call = True
-                    function_name = s[0].additional_kwargs["function_call"]["name"]
-                    arguments = json.loads(
-                        s[0].additional_kwargs["function_call"]["arguments"]
-                    )
-                elif hasattr(s[0], "tool_call_id"):
-                    print(f"Tool call: {s[0].name}")
-                    tool_name = s[0].name
+                    function_name = message_chunk.additional_kwargs["function_call"]["name"]
+                    try:
+                        arguments = json.loads(message_chunk.additional_kwargs["function_call"]["arguments"])
+                    except json.JSONDecodeError:
+                         arguments = message_chunk.additional_kwargs["function_call"]["arguments"]
+                         print("Partial arguments received or invalid JSON:", arguments)
+                         arguments = {"raw": arguments, "status": "incomplete"}
+
+
+                elif hasattr(message_chunk, "tool_call_id"):
+                    print(f"Tool call detected (tool_call_id): {message_chunk.tool_call_id}")
                     tool_call = True
+                    tool_name = getattr(message_chunk, 'name', 'unknown_tool')
 
                 data = {
                     "payload_type": "message",
-                    "content": s[0].content,
+                    "content": content,
                     "function_call": function_call,
                     "function_name": function_name,
                     "arguments": arguments,
@@ -61,19 +94,21 @@ def agent_chat():
                     "tool_name": tool_name,
                 }
                 yield f"data: {json.dumps(data)}\n\n".encode("utf-8")
+
             elif s[0] == "values":
                 values_data = s[1]
-                print("VALUES DATA", values_data)
                 data = {}
                 data["payload_type"] = "values"
-                if "error" or "action" in values_data:
-                    if "action" in values_data:
-                        action = values_data["action"]
-                        data["action"] = action
-                    if "error" in values_data:
-                        error_message = values_data["error"]
-                        data["error"] = error_message
-                yield f"data: {json.dumps(data)}\n\n".encode("utf-8")
+                if "action" in values_data:
+                    data["action"] = values_data["action"]
+                if "error" in values_data:
+                    data["error"] = values_data["error"]
+                if "final_answer" in values_data:
+                    data["final_answer"] = values_data["final_answer"]
+
+                if len(data) > 1:
+                     yield f"data: {json.dumps(data)}\n\n".encode("utf-8")
+
     return Response(
         stream_with_context(generate()),
         mimetype="text/event-stream",

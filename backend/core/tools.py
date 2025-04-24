@@ -2,8 +2,9 @@ from langchain_core.tools import tool
 from typing import Optional
 from core.rag import Rag
 from api.scraper import Scraper
-
+from langchain_community.tools.tavily_search import TavilySearchResults
 retriever = Rag.create_vectordb_retriever()
+tavily = TavilySearchResults(max_results=5)
 
 @tool
 def vectorstore_retriever_tool(query : str) -> str:
@@ -11,12 +12,11 @@ def vectorstore_retriever_tool(query : str) -> str:
 
   Args:
       query: The query to use to search the vector database
-
+      
   Returns:
       Relevant information from the vector database"""
   docs = retriever.get_relevant_documents(query)
   if not docs:
-    print("no docs")
     return "No relevant jobs found."
   def format_docs(docs):
     relevant_jobs = ""
@@ -31,7 +31,6 @@ def vectorstore_retriever_tool(query : str) -> str:
         relevant_jobs += f"Skills: {metadata.get('skills', 'N/A')}\n\n"
     return relevant_jobs
   relevant_info = format_docs(docs)
-  print("relevant info: ", relevant_info)
   return relevant_info
 
 @tool
@@ -66,4 +65,14 @@ def publicapi_retriever_tool(work_mode: Optional[str] = None, job_type: Optional
     relevant_jobs += f"Skills: {job['skills']}\n\n"
   return relevant_jobs
 
-# tools = [vectorstore_retriever_tool, publicapi_retriever_tool]
+@tool
+def career_guidance_tool(query : str) -> str:
+  """Explores online resources for providing personalized guidance to help users navigate and advance their careers.
+
+  Args:
+      query: The query to use to search from online resources.
+
+  Returns:
+      Relevant information from the internet for Personalised Career Guidance"""
+  results = tavily.invoke(input=query)
+  return results
