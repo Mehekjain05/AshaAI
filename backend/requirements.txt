@@ -24,3 +24,5 @@ spacy
 pinecone
 langchain_pinecone
 tavily-python
+langchain-core
+pymongo
