@@ -7,7 +7,7 @@ import Navbar from "./components/Navbar";
 import Community from "./pages/Community";
 import Learning from "./pages/Learning";
 import Chat from "./pages/Chat";
-import RoadMap from "./components/Roadmap";
+import RoadMap from "./components/RoadMap.tsx";
 
 function AppContent() {
   const location = useLocation();

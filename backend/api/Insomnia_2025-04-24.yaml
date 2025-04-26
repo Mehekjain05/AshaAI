@@ -1,0 +1,303 @@
+type: collection.insomnia.rest/5.0
+name: Asha AI
+meta:
+  id: wrk_f7516af980b1402a9d87a6719900972a
+  created: 1744471495338
+  modified: 1745425232157
+collection:
+  - name: Job search apis
+    meta:
+      id: fld_5f854e2123fa40eab43136464dc751c9
+      created: 1744517161957
+      modified: 1745516434459
+      sortKey: -1744517161957
+    children:
+      - name: Limited access
+        meta:
+          id: fld_2d134137893449edb1651a5cb3423af8
+          created: 1744517195342
+          modified: 1745516434458
+          sortKey: -1744517172630
+        children:
+          - url: https://jsearch.p.rapidapi.com/search
+            name: jsearch job search - limited
+            meta:
+              id: req_ec8fd7386468408085a69c9de6df508c
+              created: 1744471696663
+              modified: 1745516434459
+              isPrivate: false
+              description: "allowed 200 requests over an acc. tested with 4 5 "
+              sortKey: -1744517206448
+            method: GET
+            parameters:
+              - disabled: false
+                id: pair_93fe1a6c4086447580316627c6692570
+                name: query
+                value: Software engineer in mumbai for women 2025 graduates
+              - disabled: false
+                id: pair_737fb44f6eff40bbb6be9051de054046
+                name: page
+                value: "1"
+              - disabled: false
+                id: pair_a84dae50429e43c7811cc86d477cfa6c
+                name: num_pages
+                value: "1"
+            headers:
+              - id: pair_d231cf5545544b7caae017ae56919c9c
+                name: User-Agent
+                value: insomnia/11.0.2
+              - disabled: false
+                id: pair_8c70b47a6d1a4a1e94987e03f897e81e
+                name: X-Rapidapi-Key
+                value: 2b6e27483amsha7209e6023a7090p117c48jsn5d2158ba58b7
+              - disabled: false
+                id: pair_a1b163512083484dae99ae3f629e2cb8
+                name: X-Rapidapi-Host
+                value: jsearch.p.rapidapi.com
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://linkedin-api8.p.rapidapi.com/search-jobs-v2?keywords=golang&locationId=92000000&datePosted=anyTime&sort=mostRelevant
+            name: real time linkedin scraper job search
+            meta:
+              id: req_9422f6e8b6204146977bf7a8de0f936e
+              created: 1744516860835
+              modified: 1745516434459
+              isPrivate: false
+              description: >-
+                allowed 1000 requests per hour
+
+
+
+                https://rapidapi.com/rockapis-rockapis-default/api/linkedin-api8/playground/apiendpoint_31e35592-7e5b-4c9e-9277-6fa105a41027
+              sortKey: -1744517206548
+            method: GET
+            parameters:
+              - disabled: true
+                id: pair_e5d1e8b7bb4f4671a7e708abd5f37287
+              - disabled: true
+                id: pair_c6b93615de4f4239b2510b5d8719e75d
+            headers:
+              - id: pair_0128eee049554e9384498e40bb658b0f
+                name: User-Agent
+                value: insomnia/11.0.2
+              - disabled: false
+                id: pair_e1b4432e7f484fbc96ebcfb68443b6db
+                name: X-Rapidapi-Key
+                value: 2b6e27483amsha7209e6023a7090p117c48jsn5d2158ba58b7
+              - disabled: false
+                id: pair_cdd94c6770f8415f85cb810102ac06ee
+                name: X-Rapidapi-Host
+                value: linkedin-api8.p.rapidapi.com
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://glassdoor-real-time.p.rapidapi.com/jobs/search
+            name: New Request
+            meta:
+              id: req_3cd5b9eef3124740aea853edff8f9d46
+              created: 1744816735910
+              modified: 1745516434459
+              isPrivate: false
+              description: |-
+                Requests
+
+                200 / Month
+
+                1000 requests per hour
+              sortKey: -1744517206648
+            method: GET
+            parameters:
+              - disabled: false
+                id: pair_18e107de47264ef3aa26656d1fee7fbc
+                name: query
+                value: Java Developer
+              - disabled: false
+                id: pair_b6c08f97f6f045ebb048b46f28422745
+                name: sort
+                value: date_desc
+              - disabled: false
+                id: pair_57bbc3b599094349a92757206bb90769
+                name: jobFunction
+                value: "1007"
+              - disabled: false
+                id: pair_abde90403ebf43b6984f7ce468f9de65
+                name: minSalary
+                value: "90000"
+              - disabled: false
+                id: pair_56857d31057443539a648957bbd7c41a
+                name: seniorityLevel
+                value: midseniorlevel
+            headers:
+              - id: pair_0b5c850ebb784dcabbc256112aca24d5
+                name: User-Agent
+                value: insomnia/11.0.2
+              - disabled: false
+                id: pair_a5d8b6e9dcce46bdb87b2509320c5eb8
+                name: X-Rapidapi-Key
+                value: 2b6e27483amsha7209e6023a7090p117c48jsn5d2158ba58b7
+              - disabled: false
+                id: pair_7c5bfeb9f4384674b794a35ae574c491
+                name: X-Rapidapi-Host
+                value: glassdoor-real-time.p.rapidapi.com
+              - disabled: false
+                id: pair_ac3bd04c5597468488391b925b375a82
+                name: Host
+                value: glassdoor-real-time.p.rapidapi.com
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - url: https://api.adzuna.com/v1/api/jobs/in/search/1
+        name: Adzuna job search
+        meta:
+          id: req_1f85883e477b4ec3a1e253e9c231a6f5
+          created: 1744511378759
+          modified: 1745516434458
+          isPrivate: false
+          sortKey: -1744517172580
+        method: GET
+        parameters:
+          - disabled: false
+            id: pair_7e13b51c35b944a3a9ed8b48f4a00d27
+            name: app_id
+            value: 6f96918a
+          - disabled: false
+            id: pair_3194c13b23f64fc5a1a02b46741f810e
+            name: app_key
+            value: 358ca0201c148e923f12228498b0aad0
+          - disabled: false
+            id: pair_325b0cab59384cefbd28a4958349148c
+            name: what
+            value: data scientist
+          - disabled: false
+            id: pair_bf748ff19e1b4748966cb0e4ac69ead8
+            name: where
+            value: mumbai
+          - disabled: false
+            id: pair_a80ca403118b4504bb5ab34d6daf880a
+            name: results_per_page
+            value: "10"
+          - disabled: true
+            id: pair_d3d6fab471f747c382d52b8a3618c312
+          - disabled: true
+            id: pair_0200ab06acda46f1a002cc8ebabbe242
+          - disabled: true
+            id: pair_4577dc89355c4b94b42beb8086b28c72
+          - disabled: true
+            id: pair_9953ec9b778f46988fa2bf253b74eea4
+        headers:
+          - id: pair_e607831f7c744a0bb81652a4b4cb3d64
+            name: User-Agent
+            value: insomnia/11.0.2
+          - disabled: false
+            id: pair_57006d907f0c47a5bbdd58c389221c9d
+            name: content-type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: https://remoteok.io/api?search=stripe
+        name: remote ok remote job search
+        meta:
+          id: req_edc046645b634627a7fba205055ab1eb
+          created: 1744515460069
+          modified: 1745516434459
+          isPrivate: false
+          sortKey: -1744517172480
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.0.2
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Job board apis
+    meta:
+      id: fld_a8e1eb5cddd649eab5dc7e310cff52ab
+      created: 1744517311016
+      modified: 1745516434459
+      sortKey: -1744517311016
+    children:
+      - url: https://www.arbeitnow.com/api/job-board-api
+        name: arbeitnow job board not indian
+        meta:
+          id: req_4ca725c4588e48659235dd1bde6de618
+          created: 1744471940385
+          modified: 1745516434459
+          isPrivate: false
+          sortKey: -1744517316578
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.0.2
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: https://boards-api.greenhouse.io/v1/boards/stripe/jobs
+        name: Greenhouse job board
+        meta:
+          id: req_a8954d6241b84291a4533093e977c05e
+          created: 1744513572296
+          modified: 1745516434459
+          isPrivate: false
+          sortKey: -1744517316478
+        method: GET
+        parameters:
+          - disabled: false
+            id: pair_62e58dd400a84c959b2f40b7dadc2bf5
+            name: search
+            value: software-dev
+        headers:
+          - name: User-Agent
+            value: insomnia/11.0.2
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_223557b30fc4772f4c592934bd0262cdef7a07b0
+    created: 1745425232775
+    modified: 1745425232775
+environments:
+  name: Base Environment
+  meta:
+    id: env_223557b30fc4772f4c592934bd0262cdef7a07b0
+    created: 1744471495343
+    modified: 1745425232154
+    isPrivate: false
