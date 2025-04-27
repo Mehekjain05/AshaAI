@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
@@ -131,7 +132,8 @@ def agent_chat():
     "user_query": validation_results.validated_output,
     "query_type": detect_query_type(user_message),
     "page_visited": "chatbot",
-    "response_time_ms": response_time_ms
+    "response_time_ms": response_time_ms,
+    "timestamp": datetime.utcnow().isoformat()
     # "clicked_job_id": None,  # Update this when job click is implemented
     }
     insert_analytics_record(analytics_data)
