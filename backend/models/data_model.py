@@ -21,6 +21,24 @@ class JobResponse(BaseModel):
 class JobResponseList(BaseModel):
     """A list of job responses"""
     jobs: List[JobResponse]
+    
+class EventResponse(BaseModel):
+    """Information of relevant event based on a user query"""
+    title: str = Field(description="title of the event")
+    image: str = Field(description="image of the event")
+    categories: List[str] = Field(description="categories/tags associated with the event")
+    mode: str = Field(description="mode of the event (online or offline)")
+    date: str = Field(description="date range of the event")
+    time: str = Field(description="time range of the event")
+    venue: str = Field(description="venue of the event")
+    price: str = Field(description="price of the event")
+    event_url: str = Field(description="official event URL")
+    register_url: str = Field(description="URL to register for the event")
+    
+        
+class CurrentEvents(BaseModel):
+    """A list of job responses"""
+    events: List[EventResponse]    
 
 class BiasDetection(BaseModel):
     """Detecting bias and relevance in a user query"""
