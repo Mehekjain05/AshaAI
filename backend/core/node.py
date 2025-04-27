@@ -103,14 +103,13 @@ class Node:
         function_called = messages.additional_kwargs["function_call"]
         function_name = function_called["name"]
         function_args = json.loads(function_called["arguments"])
-        if "work_mode" in function_args and "job_type" in function_args:
-            response = publicapi_retriever_tool.invoke(input={"work_mode": function_args["work_mode"], "job_type": function_args["job_type"]})
-        elif "work_mode" in function_args:
-            response = publicapi_retriever_tool.invoke(input={"work_mode": function_args["work_mode"], "job_type": None})
-        elif "job_type" in function_args:
-            response = publicapi_retriever_tool.invoke(input={"work_mode": None, "job_type": function_args["job_type"]})
-        else:
-            response = publicapi_retriever_tool.invoke(input={"work_mode":None, "job_type":None})
+        input_params = {
+            "work_mode": function_args.get("work_mode"),
+            "job_type": function_args.get("job_type"),
+            "keyword": function_args.get("keyword")
+        }
+
+        response = publicapi_retriever_tool.invoke(input=input_params)
         return {"messages": [ToolMessage(content=response, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}
 
     def vector_store_retrieve(state):
