@@ -4,8 +4,6 @@ from core.rag import Rag
 from api.scraper import Scraper
 from langchain_community.tools.tavily_search import TavilySearchResults
 from models.data_model import MongoDB
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-
 from typing import List, Dict
 
 db = MongoDB()
