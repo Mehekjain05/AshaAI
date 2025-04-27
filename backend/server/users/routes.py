@@ -133,7 +133,6 @@ def agent_chat():
     "page_visited": "chatbot",
     "response_time_ms": response_time_ms
     # "clicked_job_id": None,  # Update this when job click is implemented
-
     }
     insert_analytics_record(analytics_data)
     return Response(
