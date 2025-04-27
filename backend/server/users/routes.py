@@ -18,11 +18,10 @@ users = Blueprint(name='users', import_name=__name__)
 GUARD = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 ASHA = AshaAI.create_agent()
 
-start_time = time.time()
-
 @users.route("/chat", methods=["GET", "POST"])
 def agent_chat():
-    user_id = "user-123"
+    start_time = time.time()
+    user_id = "user-321"
     data: dict = request.get_json()
     user_message = data.get("query")
 
@@ -65,6 +64,7 @@ def agent_chat():
                 {"role": "user", "content": validation_results.validated_output},
             ]
         }
+        print("INPUT TO THE AGENT: ", inputs)
         config = {"configurable": {"user_id": user_id, "thread_id": "1"}}
 
         for s in ASHA.stream(
@@ -84,19 +84,16 @@ def agent_chat():
                 if hasattr(message_chunk, "additional_kwargs") and message_chunk.additional_kwargs.get(
                     "function_call"
                 ):
-                    print(f"Function call: {message_chunk.additional_kwargs['function_call']}")
                     function_call = True
                     function_name = message_chunk.additional_kwargs["function_call"]["name"]
                     try:
                         arguments = json.loads(message_chunk.additional_kwargs["function_call"]["arguments"])
                     except json.JSONDecodeError:
                          arguments = message_chunk.additional_kwargs["function_call"]["arguments"]
-                         print("Partial arguments received or invalid JSON:", arguments)
                          arguments = {"raw": arguments, "status": "incomplete"}
 
 
                 elif hasattr(message_chunk, "tool_call_id"):
-                    print(f"Tool call detected (tool_call_id): {message_chunk.tool_call_id}")
                     tool_call = True
                     tool_name = getattr(message_chunk, 'name', 'unknown_tool')
 
@@ -135,7 +132,6 @@ def agent_chat():
     "response_time_ms": response_time_ms,
     "timestamp": datetime.utcnow().isoformat()
     # "clicked_job_id": None,  # Update this when job click is implemented
-
     }
     insert_analytics_record(analytics_data)
     return Response(
