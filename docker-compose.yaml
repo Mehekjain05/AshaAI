@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "0.0.0.0:3000:3000"  # Adjust the port as needed
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    ports:
+      - "0.0.0.0:5000:5000"  # Adjust the port as needed
+    environment:
+      GOOGLE_API_KEY : "AIzaSyD7eSrtph8MjdI_WoYVf_N1nJpsrHzH-Ck"
+      PINECONE_API_KEY : "pcsk_q5jJE_4WByBYX8UtQS6iWHwnALwU1b5Adhpo9b5zqv46RVFvv4PQJ3PLvKBhLC2xzdsAU"
+      PINECONE_ENV : "us_east-1"
+      TAVILY_API_KEY : "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"
+      MONGODB_URI : "mongodb+srv://shreyashah100803:1O8snCuFFjZFZLAU@cluster0.2nmyjfr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
