@@ -12,7 +12,7 @@ const Navbar: React.FC = () => {
           <a href="/learning" className="text-gray-700 hover:text-[#90c45c]">Learning</a>
           <a href="/community" className="text-gray-700 hover:text-[#90c45c]">Community</a>
         </div>
-        <button className="bg-[#90c45c] text-white px-4 py-2 rounded-md">Sign In</button>
+        {/* <button className="bg-[#90c45c] text-white px-4 py-2 rounded-md">Sign In</button> */}
       </div>
     </nav>
   );
