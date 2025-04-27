@@ -3,21 +3,37 @@ from langgraph.graph.message import add_messages
 from ast import arguments
 import json
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
-from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool, current_events_tool, update_user_profile_tool, STORE
-from models.data_model import JobResponseList, CareerResponse, CurrentEvents
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool, current_events_tool, update_user_profile_tool
+from models.data_model import JobResponseList, CareerResponse, CurrentEvents, UserProfile
 from core.guardrails import CustomDetectPII, CustomDetectBias
 from guardrails import Guard
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.store.base import BaseStore
 from langgraph.func import entrypoint
 from langgraph.config import get_config
+from langgraph.store.memory import InMemoryStore
+from langmem import create_memory_store_manager
 
 # feedback, preferred jobs, preferred location, preferred work mode
 guard = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 
 tools = [vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool, current_events_tool, update_user_profile_tool]
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
+STORE = InMemoryStore(
+    index={
+        "dims":3072,
+        "embed": GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-exp-03-07")
+    }
+)
+manager = create_memory_store_manager(
+    llm,
+    namespace=("users", "{user_id}", "profile"),
+    schemas=[UserProfile],
+    enable_inserts=False,
+    store=STORE,
+)
 class Node:
     SYSTEM_PROMPT = """You are **Asha**, an AI chatbot developed for the **JobsForHer Foundation**, empowering women in their professional journeys. Your goal is to provide accurate, ethical, and context-aware assistance focused on careers, job listings, community events, mentorship programs, and professional networking.  
 
@@ -266,9 +282,16 @@ Your mission is to drive intelligent, ethical, and impactful conversations that 
             messages: The updated state with the response
         """
         messages = state["messages"][-1]
+        conversation = []
+        for msg in state["messages"]:
+            if isinstance(msg, HumanMessage):
+                role = "user"
+            elif isinstance(msg, AIMessage):
+                role = "assistant"
+            else:
+                role = "system"
+            conversation.append({"role": role, "content": msg.content})
         function_called = messages.additional_kwargs["function_call"]
         function_name = function_called["name"]
-        function_args = json.loads(function_called["arguments"])
-        if "messages" in function_args:
-            res = update_user_profile_tool.invoke(input={"messages": state["messages"]})
+        res = manager.invoke({"messages": conversation})
         return {"messages": [ToolMessage(content=res, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}

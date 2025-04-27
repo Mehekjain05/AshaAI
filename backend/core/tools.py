@@ -3,29 +3,15 @@ from typing import Optional
 from core.rag import Rag
 from api.scraper import Scraper
 from langchain_community.tools.tavily_search import TavilySearchResults
-from models.data_model import MongoDB, UserProfile
+from models.data_model import MongoDB
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from langgraph.store.memory import InMemoryStore
-from langmem import create_memory_store_manager
+
+from typing import List, Dict
 
 db = MongoDB()
 
 retriever = Rag.create_vectordb_retriever()
 tavily = TavilySearchResults(max_results=5)
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
-STORE = InMemoryStore(
-    index={
-        "dims":3072,
-        "embed": GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-exp-03-07")
-    }
-)
-manager = create_memory_store_manager(
-    llm,
-    namespace=("users", "{user_id}", "profile"),
-    schemas=[UserProfile],
-    enable_inserts=False,
-    store=STORE,
-)
 
 @tool
 def vectorstore_retriever_tool(query : str) -> str:
@@ -150,7 +136,7 @@ def current_events_tool():
   return relevant_events
 
 @tool
-def update_user_profile_tool(messages: str) -> str:
+def update_user_profile_tool(messages: List[Dict]) -> str:
   """Call to update the user's profile consisting of preferred work mode, job type, location, feedback, response style preference or any other preferences of the user.
 
     Args:
@@ -158,6 +144,4 @@ def update_user_profile_tool(messages: str) -> str:
 
     Returns:
         A string describing the profile update"""
-  updated_profile = manager.invoke({"messages": messages})
-  print("UPDATED PROFILE", updated_profile)
-  return "User Profile updated: " + str(updated_profile[0]["value"]["content"])
+  return "User Profile updated successfully!"
