@@ -103,6 +103,7 @@ class Scraper:
 
             for card in job_cards:
                 job_data = {}
+                job_data['source'] = "HerKey"  
 
                 # Extract Title
                 title_tag = card.find('p', attrs={'data-test-id': 'job-title'})
