@@ -161,3 +161,50 @@ class MongoDB:
             {"_id": ObjectId(session_id)},
             {"$set": session_data}
         )
+
+    def cache_job_url(self, url, jobs_data):
+        """
+        Store job search results in cache with URL as the key
+        
+        Args:
+            url (str): The URL used to fetch the jobs
+            jobs_data (list): List of job dictionaries
+            
+        Returns:
+            pymongo.results.InsertOneResult: Result of the insert operation
+        """
+        from datetime import datetime, timedelta
+        
+        # Set expiration time (e.g., cache valid for 24 hours)
+        expiry_time = datetime.utcnow() + timedelta(hours=24)
+        
+        cache_data = {
+            "url": url,
+            "jobs": jobs_data,
+            "timestamp": datetime.utcnow(),
+            "expires_at": expiry_time
+        }
+        
+        # Create job_cache collection if not exists
+        if "job_cache" not in self.db.list_collection_names():
+            self.db.create_collection("job_cache")
+            # Create TTL index to automatically expire old entries
+            self.db["job_cache"].create_index("expires_at", expireAfterSeconds=0)
+        
+        return self.db["job_cache"].insert_one(cache_data)
+
+
+    def get_cached_jobs(self, url):
+        """
+        Get cached job results for a specific URL
+        
+        Args:
+            url (str): The URL used to fetch the jobs
+            
+        Returns:
+            list: List of job dictionaries if cache exists, None otherwise
+        """
+        result = self.db["job_cache"].find_one({"url": url})
+        if result:
+            return result["jobs"]
+        return None
