@@ -3,6 +3,10 @@ from typing import Optional
 from core.rag import Rag
 from api.scraper import Scraper
 from langchain_community.tools.tavily_search import TavilySearchResults
+from models.data_model import MongoDB
+
+db = MongoDB()
+
 retriever = Rag.create_vectordb_retriever()
 tavily = TavilySearchResults(max_results=5)
 
@@ -61,7 +65,23 @@ def publicapi_retriever_tool(work_mode: Optional[str] = None, job_type: Optional
   else:
       herkey_jobs_url = base_url
 
-  extracted_jobs = Scraper.scrape_herkey_jobs(herkey_jobs_url, wait_time=30)
+
+  # added code to check if jobs in cache
+  cached_jobs = db.get_cached_jobs(herkey_jobs_url)
+  
+  if cached_jobs:
+    print(f"Using cached results for URL: {herkey_jobs_url}")
+    extracted_jobs = cached_jobs
+  else:
+    print(f"Fetching new results for URL: {herkey_jobs_url}")
+    # Make the API call
+    extracted_jobs = Scraper.scrape_herkey_jobs(herkey_jobs_url, wait_time=30)
+    
+    # Store the results in MongoDB
+    db.cache_job_url(herkey_jobs_url, extracted_jobs)
+
+#  extracted_jobs = Scraper.scrape_herkey_jobs(herkey_jobs_url, wait_time=30)
+
   relevant_jobs = ""
   for i, job in enumerate(extracted_jobs):
     relevant_jobs += f"Job {i+1}:\n"
