@@ -92,6 +92,7 @@ def current_events_tool():
   for i, event in enumerate(extracted_events):
       relevant_events += f"Event {i+1}:\n"
       relevant_events += f"Title: {event['title']}\n"
+      relevant_events += f"Image: {event['image_url']}\n"
       relevant_events += f"Categories: {', '.join(event['categories'])}\n"   
       relevant_events += f"Mode: {event['mode']}\n"
       relevant_events += f"Date: {event['date']}\n"
