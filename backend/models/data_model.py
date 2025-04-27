@@ -35,7 +35,7 @@ class EventResponse(BaseModel):
     register_url: str = Field(description="URL to register for the event")
     
         
-class CurentEvents(BaseModel):
+class CurrentEvents(BaseModel):
     """A list of job responses"""
     events: List[EventResponse]    
 
