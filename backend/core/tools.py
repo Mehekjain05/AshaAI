@@ -76,3 +76,28 @@ def career_guidance_tool(query : str) -> str:
       Relevant information from the internet for Personalised Career Guidance"""
   results = tavily.invoke(input=query)
   return results
+
+@tool
+def current_events_tool():
+  """Fetching the current live events /sessions from the HerKeys
+
+    Args: None
+    Returns:
+        String containing all the relevant events / sessions from api"""
+
+  herkey_events_url = "https://events.herkey.com/events"
+  
+  extracted_events = Scraper.scrape_herkey_jobs(herkey_events_url, wait_time=30)
+  relevant_events = ""
+  for i, event in enumerate(extracted_events):
+      relevant_events += f"Event {i+1}:\n"
+      relevant_events += f"Title: {event['title']}\n"
+      relevant_events += f"Categories: {', '.join(event['categories'])}\n"   
+      relevant_events += f"Mode: {event['mode']}\n"
+      relevant_events += f"Date: {event['date']}\n"
+      relevant_events += f"Time: {event['time']}\n"
+      relevant_events += f"Venue: {event['venue']}\n"
+      relevant_events += f"Price: {event['price']}\n"
+      relevant_events += f"Event URL: {event['event_url']}\n"
+      relevant_events += f"Register URL: {event['register_url']}\n\n"
+  return relevant_events
