@@ -4,14 +4,14 @@ from ast import arguments
 import json
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
-from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool
+from core.tools import vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool,current_events_tool
 from models.data_model import JobResponseList, CareerResponse
 from core.guardrails import CustomDetectPII, CustomDetectBias
 from guardrails import Guard
 
 guard = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 
-tools = [vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool]   
+tools = [vectorstore_retriever_tool, publicapi_retriever_tool, career_guidance_tool, current_events_tool]   
 class Node:
     def agent(state):
         """
@@ -148,4 +148,19 @@ class Node:
         if "query" in function_args:
             res = career_guidance_tool.invoke(input={"query": function_args["query"]})
         return {"messages": [ToolMessage(content=res, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}
-        
+    
+    def current_events(state):
+        """
+        Generate answer
+
+        Args:
+            state (messages): The current state
+
+        Returns:
+            messages: The updated state with the response
+        """
+        messages = state["messages"][-1]
+        function_called = messages.additional_kwargs["function_call"]
+        function_name = function_called["name"]
+        response = vectorstore_retriever_tool.invoke()
+        return {"messages": [ToolMessage(content=response, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}

@@ -135,7 +135,6 @@ def agent_chat():
     "response_time_ms": response_time_ms,
     "timestamp": datetime.utcnow().isoformat()
     # "clicked_job_id": None,  # Update this when job click is implemented
-
     }
     insert_analytics_record(analytics_data)
     return Response(
