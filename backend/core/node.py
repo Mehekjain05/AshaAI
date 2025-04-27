@@ -179,5 +179,9 @@ class Node:
         messages = state["messages"][-1]
         function_called = messages.additional_kwargs["function_call"]
         function_name = function_called["name"]
+<<<<<<< HEAD
         response = current_events_tool.invoke(input={})
+=======
+        response = current_events_tool.invoke(input={"query":"None"})
+>>>>>>> a21b0dd8a81fde8fa5d5e300fa7fe8679e83c58d
         return {"messages": [ToolMessage(content=response, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}
