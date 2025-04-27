@@ -9,6 +9,15 @@ from datetime import datetime
 load_dotenv()
 
 # Pydantic models for type validation and documentation
+
+class UserProfile(BaseModel):
+    "Save the user's preferences"
+    name: str
+    preferred_name: str
+    response_style_preference: str
+    special_skills: list[str]
+    other_preferences: list[str]
+    preferred_work_mode: str = Field(description="Preferred work mode of the user")
 class JobResponse(BaseModel):
     """Information of relevant job based on a user query"""
     title: str = Field(description="title of the job")
