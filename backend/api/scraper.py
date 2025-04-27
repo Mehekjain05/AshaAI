@@ -371,5 +371,3 @@ class Scraper:
                 driver.quit()
         print(events_list)        
         return events_list
-    
-Scraper.scrape_herkey_events()    
