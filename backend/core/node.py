@@ -162,5 +162,5 @@ class Node:
         messages = state["messages"][-1]
         function_called = messages.additional_kwargs["function_call"]
         function_name = function_called["name"]
-        response = vectorstore_retriever_tool.invoke(input={"query":"N/A"})
+        response = current_events_tool.invoke(input={"query":"None"})
         return {"messages": [ToolMessage(content=response, name=function_name, tool_call_id = messages.tool_calls[0]['id'])]}

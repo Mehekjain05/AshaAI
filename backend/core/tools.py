@@ -108,6 +108,7 @@ def current_events_tool():
   herkey_events_url = "https://events.herkey.com/events"
   
   extracted_events = Scraper.scrape_herkey_events(herkey_events_url, wait_time=30)
+  print(extracted_events)
   relevant_events = ""
   for i, event in enumerate(extracted_events):
       relevant_events += f"Event {i+1}:\n"
