@@ -101,6 +101,7 @@ Your mission is to drive intelligent, ethical, and impactful conversations that 
         {results[0].value}
         </User Profile>
         """
+            print("PROFILE", profile)
             SYSTEM_PROMPT += profile 
         model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
         model = model.bind_tools(tools)
@@ -156,7 +157,8 @@ Your mission is to drive intelligent, ethical, and impactful conversations that 
             profile = f"""\n<User Profile>:
         {results[0].value}
         </User Profile>
-        """
+        """ 
+            print("PROFILE", profile)
             SYSTEM_PROMPT += profile
         model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
         if messages[-1].name == "publicapi_retriever_tool":
