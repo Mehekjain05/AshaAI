@@ -122,7 +122,3 @@ def main():
     if jobs:
         store_jobs_in_pinecone(jobs)
         print("Jobs stored in Pinecone successfully")
-
-
-if __name__ == "__main__":
-    main()

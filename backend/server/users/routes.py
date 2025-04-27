@@ -18,10 +18,9 @@ users = Blueprint(name='users', import_name=__name__)
 GUARD = Guard().use_many(CustomDetectPII(on_fail="fix"), CustomDetectBias(on_fail="fix"))
 ASHA = AshaAI.create_agent()
 
-start_time = time.time()
-
 @users.route("/chat", methods=["GET", "POST"])
 def agent_chat():
+    start_time = time.time()
     user_id = "user-123"
     data: dict = request.get_json()
     user_message = data.get("query")
