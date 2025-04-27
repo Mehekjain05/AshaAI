@@ -101,7 +101,6 @@ Your mission is to drive intelligent, ethical, and impactful conversations that 
         {results[0].value}
         </User Profile>
         """
-            print("PROFILE", profile)
             SYSTEM_PROMPT += profile 
         model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
         model = model.bind_tools(tools)
@@ -158,14 +157,13 @@ Your mission is to drive intelligent, ethical, and impactful conversations that 
         {results[0].value}
         </User Profile>
         """ 
-            print("PROFILE", profile)
             SYSTEM_PROMPT += profile
         model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
         if messages[-1].name == "publicapi_retriever_tool":
             structured_model = model.with_structured_output(JobResponseList)
             response = structured_model.invoke(
                 [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": f"You are a helpful assistant."},
                     *state["messages"],
                 ]
             )
@@ -174,7 +172,7 @@ Your mission is to drive intelligent, ethical, and impactful conversations that 
             structured_model = model.with_structured_output(CareerResponse)
             response = structured_model.invoke(
                 [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": f"You are a helpful assistant."},
                     *state["messages"],
                 ]
             )
@@ -184,7 +182,7 @@ Your mission is to drive intelligent, ethical, and impactful conversations that 
             structured_model = model.with_structured_output(CurrentEvents)
             response = structured_model.invoke(
                 [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": f"You are a helpful assistant."},
                     *state["messages"],
                 ]
             )
