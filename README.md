@@ -95,7 +95,3 @@
 
 Contributions are welcome! Please follow standard fork-and-pull-request workflows. Ensure code is formatted and passes any linting checks.
 
-## License
-
-(Assuming MIT License - replace if different)
-This project is licensed under the MIT License. See the LICENSE file for details.
