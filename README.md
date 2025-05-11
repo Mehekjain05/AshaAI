@@ -86,7 +86,7 @@
 2.  Start the frontend development server (`cd frontend && npm run dev`).
 3.  Open your browser and navigate to `http://localhost:4000`.
 
-**Login Credentials 
+## Login Credentials 
 username : user
 password : user
 
