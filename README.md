@@ -86,6 +86,14 @@
 2.  Start the frontend development server (`cd frontend && npm run dev`).
 3.  Open your browser and navigate to `http://localhost:4000`.
 
+##Login Credentials 
+username : user
+password : user
+
+Admin
+username : admin
+password : admin
+
 ## API Endpoints
 
 *   `/users/chat`: (POST) Endpoint for sending user messages to the chatbot and receiving streaming responses.
