@@ -87,12 +87,12 @@
 3.  Open your browser and navigate to `http://localhost:4000`.
 
 ## Login Credentials 
-username : user
-password : user
+* username : user
+* password : user
 
 Admin
-username : admin
-password : admin
+* username : admin
+* password : admin
 
 ## API Endpoints
 
